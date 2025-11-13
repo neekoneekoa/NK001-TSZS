@@ -1,23 +1,13 @@
-/***************************************************************************************
-*Copyright (c) 2019 - ,
-*ÎÄ ¼þ Ãû:systick.c
-*×÷    Õß:ÕÔ¹âöÎ
-*ÁªÏµ·½Ê½:zhao.guangxin@qq.com
-*´´½¨ÈÕÆÚ:2019-9-7
-*Ëµ    Ã÷:				
-*ÐÞ    ¸Ä:
-
-***************************************************************************************/
 #include "sysTick.h"
 
 
 /**************************************************************************
-º¯ Êý Ãû:SysTick_Init
-¹¦ÄÜÃèÊö:³õÊ¼»¯systick¡£
-ÊäÈë²ÎÊý:None
-Êä³ö²ÎÊý:None
-·µ »Ø Öµ:None
-ÆäËûËµÃ÷:
+ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½:SysTick_Init
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:ï¿½ï¿½Ê¼ï¿½ï¿½systickï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:None
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:None
+ï¿½ï¿½ ï¿½ï¿½ Öµ:None
+ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½:
 **************************************************************************/
 void SysTick_Init(void)
 {
@@ -26,51 +16,51 @@ void SysTick_Init(void)
     SysTick_Config(SystemCoreClock/1000UL);    
     prioritygroup = NVIC_GetPriorityGrouping();
 	
-	NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(prioritygroup, 15, 0));	//³õÊ¼»¯sysTickÖÐ¶Ï£¬ÓÅÏÈ¼¶15
+	NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(prioritygroup, 15, 0));	//ï¿½ï¿½Ê¼ï¿½ï¿½sysTickï¿½Ð¶Ï£ï¿½ï¿½ï¿½ï¿½È¼ï¿½15
 }
 
 /**************************************************************************
-º¯ Êý Ãû:Clock_Init
-¹¦ÄÜÃèÊö:³õÊ¼»¯Ê±ÖÓ¡£
-ÊäÈë²ÎÊý:None
-Êä³ö²ÎÊý:None
-·µ »Ø Öµ:None
-ÆäËûËµÃ÷:
+ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½:Clock_Init
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:ï¿½ï¿½Ê¼ï¿½ï¿½Ê±ï¿½Ó¡ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:None
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:None
+ï¿½ï¿½ ï¿½ï¿½ Öµ:None
+ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½:
 **************************************************************************/
 void Clock_Init(void)
 {
 #if 1
-	RCC_DeInit();													//½«ÍâÉè RCC¼Ä´æÆ÷ÖØÉèÎªÈ±Ê¡Öµ
-	RCC_HSICmd(ENABLE);												//Ê¹ÄÜHSI
-	while(RCC_GetFlagStatus(RCC_FLAG_HSIRDY) == RESET);				//µÈ´ýHSIÊ¹ÄÜ³É¹¦
+	RCC_DeInit();													//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ RCCï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªÈ±Ê¡Öµ
+	RCC_HSICmd(ENABLE);												//Ê¹ï¿½ï¿½HSI
+	while(RCC_GetFlagStatus(RCC_FLAG_HSIRDY) == RESET);				//ï¿½È´ï¿½HSIÊ¹ï¿½Ü³É¹ï¿½
 	RCC_HCLKConfig(RCC_SYSCLK_Div1);
 	RCC_PCLK1Config(RCC_HCLK_Div2);
 	RCC_PCLK2Config(RCC_HCLK_Div1);
-	RCC_PLLConfig(RCC_PLLSource_HSI_Div2, RCC_PLLMul_12);			//ÉèÖÃ PLL Ê±ÖÓÔ´¼°±¶ÆµÏµÊý
-	RCC_PLLCmd(ENABLE);												//Èç¹ûPLL±»ÓÃÓÚÏµÍ³Ê±ÖÓ,ÄÇÃ´Ëü²»ÄÜ±»Ê§ÄÜ											
-	while(RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET);				//µÈ´ýÖ¸¶¨µÄ RCC ±êÖ¾Î»ÉèÖÃ³É¹¦ µÈ´ýPLL³õÊ¼»¯³É¹¦
-	RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);						//Ñ¡ÔñÏëÒªµÄÏµÍ³Ê±ÖÓ
-	//µÈ´ýPLL³É¹¦ÓÃ×÷ÓÚÏµÍ³Ê±ÖÓµÄÊ±ÖÓÔ´
-	// 0x00£ºHSI ×÷ÎªÏµÍ³Ê±ÖÓ
-	// 0x04£ºHSE×÷ÎªÏµÍ³Ê±ÖÓ
-	// 0x08£ºPLL×÷ÎªÏµÍ³Ê±ÖÓ
-	while(RCC_GetSYSCLKSource() != 0x08);							//ÐèÓë±»Ñ¡ÔñµÄÏµÍ³Ê±ÖÓ¶ÔÓ¦ÆðÀ´£¬RCC_SYSCLKSource_PLL
+	RCC_PLLConfig(RCC_PLLSource_HSI_Div2, RCC_PLLMul_12);			//ï¿½ï¿½ï¿½ï¿½ PLL Ê±ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ÆµÏµï¿½ï¿½
+	RCC_PLLCmd(ENABLE);												//ï¿½ï¿½ï¿½PLLï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÏµÍ³Ê±ï¿½ï¿½,ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ï¿½Ü±ï¿½Ê§ï¿½ï¿½											
+	while(RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET);				//ï¿½È´ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ RCC ï¿½ï¿½Ö¾Î»ï¿½ï¿½ï¿½Ã³É¹ï¿½ ï¿½È´ï¿½PLLï¿½ï¿½Ê¼ï¿½ï¿½ï¿½É¹ï¿½
+	RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);						//Ñ¡ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ÏµÍ³Ê±ï¿½ï¿½
+	//ï¿½È´ï¿½PLLï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÏµÍ³Ê±ï¿½Óµï¿½Ê±ï¿½ï¿½Ô´
+	// 0x00ï¿½ï¿½HSI ï¿½ï¿½ÎªÏµÍ³Ê±ï¿½ï¿½
+	// 0x04ï¿½ï¿½HSEï¿½ï¿½ÎªÏµÍ³Ê±ï¿½ï¿½
+	// 0x08ï¿½ï¿½PLLï¿½ï¿½ÎªÏµÍ³Ê±ï¿½ï¿½
+	while(RCC_GetSYSCLKSource() != 0x08);							//ï¿½ï¿½ï¿½ë±»Ñ¡ï¿½ï¿½ï¿½ÏµÍ³Ê±ï¿½Ó¶ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½RCC_SYSCLKSource_PLL
 #else
-	RCC_DeInit();    												//ÏÈ¸´Î»RCC¼Ä´æÆ÷
-	RCC_HSEConfig( RCC_HSE_ON );    								//Ê¹ÄÜHSE
+	RCC_DeInit();    												//ï¿½È¸ï¿½Î»RCCï¿½Ä´ï¿½ï¿½ï¿½
+	RCC_HSEConfig( RCC_HSE_ON );    								//Ê¹ï¿½ï¿½HSE
     if ( SUCCESS == RCC_WaitForHSEStartUp() )
     {
-        FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);		//Ê¹ÄÜÔ¤È¡Ö¸£¬ÕâÊÇFLASH¹Ì¼þÖÐµÄº¯Êý
-        FLASH_SetLatency(FLASH_Latency_2);  						//ÉèÖÃFLASHµÈ´ýÖÜÆÚ¡£  ÒòÎª±¶Æµ³É72M ËùÒÔµÈ´ýÁ½¸öÖÜÆÚ¡£
-        //ÅäÖÃÈý¸ö×ÜÏßµÄ±¶ÆµÒò×Ó
-        RCC_HCLKConfig(RCC_SYSCLK_Div1);							//HCLK --> AHB ×î´óÎª72M£¬ËùÒÔÖ»ÐèÒª1·ÖÆµ
-		RCC_PCLK1Config(RCC_HCLK_Div2);								//PCLK1 --> APB1 ×î´óÎª36M£¬ËùÒÔÒª2·ÖÆµ
-		RCC_PCLK2Config(RCC_HCLK_Div1);								//PCLK2 --> APB2 ×î´óÎª72M£¬ËùÒÔÖ»ÐèÒª1·ÖÆµ
-        RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_9);		//ÏÈÅäÖÃËøÏà»· PLLCLK = HSE * ±¶ÆµÒò×Ó
-        RCC_PLLCmd(ENABLE);        									//Ê¹ÄÜPLL
-        while ( RESET == RCC_GetFlagStatus(RCC_FLAG_PLLRDY) );  	//µÈ´ýPLLÎÈ¶¨
-        RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);					//Ñ¡ÔñÏµÍ³Ê±ÖÓ£¨Ñ¡ÔñËøÏà»·Êä³ö£©
-        while ( 0x08 != RCC_GetSYSCLKSource() );					//µÈ´ýÑ¡ÔñÎÈ¶¨
+        FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);		//Ê¹ï¿½ï¿½Ô¤È¡Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½FLASHï¿½Ì¼ï¿½ï¿½ÐµÄºï¿½ï¿½ï¿½
+        FLASH_SetLatency(FLASH_Latency_2);  						//ï¿½ï¿½ï¿½ï¿½FLASHï¿½È´ï¿½ï¿½ï¿½ï¿½Ú¡ï¿½  ï¿½ï¿½Îªï¿½ï¿½Æµï¿½ï¿½72M ï¿½ï¿½ï¿½ÔµÈ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¡ï¿½
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ßµÄ±ï¿½Æµï¿½ï¿½ï¿½ï¿½
+        RCC_HCLKConfig(RCC_SYSCLK_Div1);							//HCLK --> AHB ï¿½ï¿½ï¿½Îª72Mï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Òª1ï¿½ï¿½Æµ
+		RCC_PCLK1Config(RCC_HCLK_Div2);								//PCLK1 --> APB1 ï¿½ï¿½ï¿½Îª36Mï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òª2ï¿½ï¿½Æµ
+		RCC_PCLK2Config(RCC_HCLK_Div1);								//PCLK2 --> APB2 ï¿½ï¿½ï¿½Îª72Mï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Òª1ï¿½ï¿½Æµ
+        RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_9);		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½à»· PLLCLK = HSE * ï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½
+        RCC_PLLCmd(ENABLE);        									//Ê¹ï¿½ï¿½PLL
+        while ( RESET == RCC_GetFlagStatus(RCC_FLAG_PLLRDY) );  	//ï¿½È´ï¿½PLLï¿½È¶ï¿½
+        RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);					//Ñ¡ï¿½ï¿½ÏµÍ³Ê±ï¿½Ó£ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½à»·ï¿½ï¿½ï¿½ï¿½ï¿½
+        while ( 0x08 != RCC_GetSYSCLKSource() );					//ï¿½È´ï¿½Ñ¡ï¿½ï¿½ï¿½È¶ï¿½
     }
 #endif
 }
