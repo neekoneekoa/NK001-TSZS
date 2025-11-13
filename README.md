@@ -1,4 +1,4 @@
-# FreeRTOS动态任务创建 / FreeRTOS Dynamic Task Creation
+# 手持调试器 / Handheld debugger
 
 <div align="center">
 
@@ -12,20 +12,17 @@
 
 ### 📖 项目简介
 
-本项目演示了FreeRTOS中动态任务创建的方法和基本原理，通过多个LED控制任务展示任务调度功能。
+
 
 ### ✨ 功能特点
 
 - 动态内存分配创建FreeRTOS任务
-- 多任务并行执行示例
-- 任务优先级调度演示
-- 任务间通信基础
+
 
 ### 🔧 硬件要求
 
-- 开发板：STM32F103C8T6
-- 外设：板载LED（PC13）及外接LED
-- 调试器：ST-Link
+- 芯片：STM32F103C8T6
+
 
 ### 🛠️ 开发环境
 
@@ -55,18 +52,12 @@ Despacito003/
 1. 打开项目：使用Keil MDK打开项目文件
 2. 编译项目：点击"Build"按钮
 3. 下载程序：连接ST-Link，点击"Download"按钮将程序下载到开发板
-4. 观察结果：多个LED将以不同频率闪烁，展示多任务并行执行
+4. 观察结果：
 
 ### 📝 代码示例
 
 ```c
-// 动态创建LED任务
-xTaskCreate((TaskFunction_t )led_task,          // 任务函数
-            (const char*    )"led_task",        // 任务名称
-            (uint16_t       )128,               // 任务堆栈大小
-            (void*          )NULL,              // 传递给任务的参数
-            (UBaseType_t    )3,                 // 任务优先级
-            (TaskHandle_t*  )&LEDTask_Handler); // 任务句柄
+// 创建定时按键触发任务
 ```
 
 ### 📚 相关文档
@@ -75,24 +66,19 @@ xTaskCreate((TaskFunction_t )led_task,          // 任务函数
 
 ---
 
-## English
+### English translation of the above Chinese section
 
 ### 📖 Project Description
 
-This project demonstrates the methods and basic principles of dynamic task creation in FreeRTOS, showcasing task scheduling functionality through multiple LED control tasks.
+(Blank in original)
 
 ### ✨ Features
 
-- FreeRTOS task creation using dynamic memory allocation
-- Multi-task parallel execution example
-- Task priority scheduling demonstration
-- Basic inter-task communication
+- Create FreeRTOS tasks using dynamic memory allocation
 
 ### 🔧 Hardware Requirements
 
-- Development Board: STM32F103C8T6
-- Peripherals: Onboard LED (PC13) and external LEDs
-- Debugger: ST-Link
+- MCU: STM32F103C8T6
 
 ### 🛠️ Development Environment
 
@@ -121,25 +107,15 @@ Despacito003/
 
 1. Open project: Use Keil MDK to open the project file
 2. Compile project: Click the "Build" button
-3. Download program: Connect ST-Link, click the "Download" button to download the program to the development board
-4. Observe result: Multiple LEDs will blink at different frequencies, demonstrating parallel task execution
+3. Download program: Connect ST-Link and click "Download" to flash the board
+4. Observe result
 
 ### 📝 Code Example
 
 ```c
-// Dynamically create LED task
-xTaskCreate((TaskFunction_t )led_task,          // Task function
-            (const char*    )"led_task",        // Task name
-            (uint16_t       )128,               // Task stack size
-            (void*          )NULL,              // Parameters passed to the task
-            (UBaseType_t    )3,                 // Task priority
-            (TaskHandle_t*  )&LEDTask_Handler); // Task handle
+// Create a timed button-triggered task
 ```
 
 ### 📚 Related Documentation
 
-- [FreeRTOS Dynamic Task Creation](../../docs/en/003-FreeRTOS-Dynamic-Task-Creation.md)
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](../../LICENSE) file for details. 
+- [FreeRTOS Dynamic Task Creation](../../docs/zh/003-FreeRTOS动态任务创建.md)
