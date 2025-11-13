@@ -4,6 +4,7 @@
 #include "led.h"
 #include "sysTick.h"
 #include "oled.h"
+#include "test.h"
 #include "pms5003st.h"
 #include <string.h>
 
@@ -29,16 +30,13 @@ static void MainTaskFunc( void *pvParameters )
 	Usart1_SendData((const uint8_t *)testStr, strlen(testStr));
 	while(1)
 	{
-		if( 0 == USART1_Read(&tmp, &len, portMAX_DELAY) ){
-			Usart1_SendData(tmp, len);
-			vPortFree(tmp);
-		}
-		
+//		if( 0 == USART1_Read(&tmp, &len, portMAX_DELAY) ){
+//			Usart1_SendData(tmp, len);
+//			vPortFree(tmp);
+//		}
 		// 添加LED闪烁指示系统运行
-		LED0(LED_ON);
-		vTaskDelay(200);
-		LED0(LED_OFF);
-		vTaskDelay(200);
+	test_LED();
+
 	}
 }
 

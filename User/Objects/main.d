@@ -43,6 +43,7 @@
 .\objects\main.o: ..\BSP\led.h
 .\objects\main.o: ..\BSP\sysTick.h
 .\objects\main.o: ..\Driver\oled.h
+.\objects\main.o: test.h
 .\objects\main.o: ..\Driver\pms5003st.h
 .\objects\main.o: ..\BSP\usart2.h
 .\objects\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

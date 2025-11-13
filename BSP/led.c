@@ -42,18 +42,190 @@ void Led_Init(void)
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;      //设置IO口浮空输入
     GPIO_Init(GPIOB, &GPIO_InitStructure);              //初始化GPIO
 }
-
 /**************************************************************************
-函 数 名:GetPB13State
-功能描述:获取PB13引脚的状态
+函 数 名:Led1_On
+功能描述:使能LED1（PB1职高、PB14置低、PB13浮空输入）
 输入参数:None
 输出参数:None
-返 回 值:uint8_t - 返回PB13的电平状态
+返 回 值:None
 其他说明:
-        返回1表示高电平，0表示低电平
 **************************************************************************/
-uint8_t GetPB13State(void)
+void Led1_On(void)
 {
-    return GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_13);
+    GPIO_InitTypeDef GPIO_InitStructure;
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_15;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOB, GPIO_Pin_15);
+    
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_14;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_14);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
 
+/**************************************************************************
+函 数 名:Led2_On
+功能描述:使能LED2（PB15置低、PB14置高、PB13浮空输入）
+输入参数:None
+输出参数:None
+返 回 值:None
+其他说明:
+**************************************************************************/
+void Led2_On(void)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_15;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_15);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_14;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOB, GPIO_Pin_14);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+}
+
+/**************************************************************************
+函 数 名:Led3_On
+功能描述:使能LED3（PB13置高、PB15置低、PB14浮空输入）
+输入参数:None
+输出参数:None
+返 回 值:None
+其他说明:
+**************************************************************************/
+void Led3_On(void)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOB, GPIO_Pin_13);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_15;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_15);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_14;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+}
+
+/**************************************************************************
+函 数 名:Led4_On
+功能描述:使能LED4（PB13置低、PB15置高、PB14浮空输入）
+输入参数:None
+输出参数:None
+返 回 值:None
+其他说明:
+**************************************************************************/
+void Led4_On(void)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_13);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_15;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOB, GPIO_Pin_15);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_14;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+}
+
+/**************************************************************************
+函 数 名:Led5_On
+功能描述:使能LED5（PB13置高、PB14置低、PB15浮空输入）
+输入参数:None
+输出参数:None
+返 回 值:None
+其他说明:
+**************************************************************************/
+void Led6_On(void)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOB, GPIO_Pin_13);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_14;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_14);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_15;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+}
+
+/**************************************************************************
+函 数 名:Led6_On
+功能描述:使能LED6（PB14置高、PB13置低、PB15浮空输入）
+输入参数:None
+输出参数:None
+返 回 值:None
+其他说明:
+**************************************************************************/
+void Led5_On(void)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_14;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOB, GPIO_Pin_14);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_13);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_15;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+}
+
+/**************************************************************************
+函 数 名:Led_Off
+功能描述:关闭所有LED（PB13、PB14、PB15全部置低）
+输入参数:None
+输出参数:None
+返 回 值:None
+其他说明:
+**************************************************************************/
+void Led_Off(void)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
+}
