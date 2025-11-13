@@ -46,4 +46,5 @@
 .\objects\main.o: test.h
 .\objects\main.o: ..\Driver\pms5003st.h
 .\objects\main.o: ..\BSP\usart2.h
+.\objects\main.o: ..\BSP\key.h
 .\objects\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

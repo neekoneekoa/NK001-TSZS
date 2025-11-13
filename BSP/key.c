@@ -1,9 +1,11 @@
 #include "key.h"
-#include "adc.h"
+#include "stm32f10x_adc.h"
+#include "stm32f10x.h"  // 根据你的硬件平台选择合适的头文件
+//#include "adc.h"
 #include <stdint.h>
 
-#define KEY_ADC_CHANNEL_K1_K2_K3    ADC_CHANNEL_10   // PB10
-#define KEY_ADC_CHANNEL_K4_K5_K6    ADC_CHANNEL_11   // PB11
+#define KEY_ADC_CHANNEL_K1_K2_K3    ADC_Channel_8    // PB0
+#define KEY_ADC_CHANNEL_K4_K5_K6    ADC_Channel_9    // PB1
 
 #define KEY_NONE_PRESS_MV           5000    // 无按键时接近5V
 #define KEY3_PRESS_MV               2600    // 3个二极管压降≈0.7V*3
@@ -13,17 +15,47 @@
 #define ADC_MV_MAX                  5000
 #define ADC_MV_MIN                  0
 
-typedef enum {
-    KEY_NONE = 0,
-    KEY_K1,
-    KEY_K2,
-    KEY_K3,
-    KEY_K4,
-    KEY_K5,
-    KEY_K6
-} KEY_ID;
 
-static uint16_t key_adc_mv[2];   // 0:PB10  1:PB11
+
+// 初始化 ADC
+void adc_init(uint32_t channel) {
+    // 使能 ADC 时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+
+    // 配置 ADC
+    ADC_InitTypeDef ADC_InitStructure;
+    ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;
+    ADC_InitStructure.ADC_ScanConvMode = DISABLE;
+    ADC_InitStructure.ADC_ContinuousConvMode = DISABLE;
+    ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;
+    ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
+    ADC_InitStructure.ADC_NbrOfChannel = 1;
+    ADC_Init(ADC1, &ADC_InitStructure);
+
+    // 配置 ADC 通道
+    ADC_RegularChannelConfig(ADC1, channel, 1, ADC_SampleTime_1Cycles5);
+
+    // 使能 ADC
+    ADC_Cmd(ADC1, ENABLE);
+
+    // 启动 ADC 校准
+    ADC_ResetCalibration(ADC1);
+    while (ADC_GetResetCalibrationStatus(ADC1));
+
+    // 启动 ADC 软件转换
+    ADC_SoftwareStartConvCmd(ADC1, ENABLE);
+}
+
+// 获取 ADC 值
+uint32_t adc_get_value(uint32_t channel) {
+    // 等待 ADC 转换完成
+    while (!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC));
+
+    // 读取 ADC 值
+    return ADC_GetConversionValue(ADC1);
+}
+
+static uint16_t key_adc_mv[2];   // 0:PB0  1:PB1
 
 // 将ADC原始值转换为毫伏
 static uint16_t adc_to_mv(uint16_t adc_val)
@@ -47,8 +79,8 @@ static KEY_ID key_decode_mv(uint16_t mv)
         return KEY_NONE;
 }
 
-// 扫描PB10对应的K1/K2/K3
-static KEY_ID key_scan_pb10(void)
+// 扫描PB0对应的K1/K2/K3
+static KEY_ID key_scan_pb0(void)
 {
     uint16_t adc_raw;
     adc_raw = adc_get_value(KEY_ADC_CHANNEL_K1_K2_K3);
@@ -56,8 +88,8 @@ static KEY_ID key_scan_pb10(void)
     return key_decode_mv(key_adc_mv[0]);
 }
 
-// 扫描PB11对应的K4/K5/K6
-static KEY_ID key_scan_pb11(void)
+// 扫描PB1对应的K4/K5/K6
+static KEY_ID key_scan_pb1(void)
 {
     uint16_t adc_raw;
     adc_raw = adc_get_value(KEY_ADC_CHANNEL_K4_K5_K6);
@@ -70,6 +102,7 @@ void key_init(void)
 {
     // 初始化ADC配置（假设adc_init函数已经实现）
     // 这里需要初始化PB10和PB11对应的ADC通道
+    // 初始化用于按键的 ADC 通道：PB0 -> ADC_CHANNEL_8, PB1 -> ADC_CHANNEL_9
     adc_init(KEY_ADC_CHANNEL_K1_K2_K3);
     adc_init(KEY_ADC_CHANNEL_K4_K5_K6);
 }
@@ -79,20 +112,20 @@ KEY_ID key_scan(void)
 {
     KEY_ID key;
 
-    key = key_scan_pb10();
+    key = key_scan_pb0();
     if (key != KEY_NONE)
         return key;
 
-    key = key_scan_pb11();
+    key = key_scan_pb1();
     if (key != KEY_NONE)
-        return key + 3;   // PB11的键映射为K4/K5/K6
+        return (KEY_ID)(key + 3);   // PB1的键映射为K4/K5/K6
 
     return KEY_NONE;
 }
 
 // 获取原始ADC电压值（调试用）
-void key_get_adc_mv(uint16_t *pb10_mv, uint16_t *pb11_mv)
+void key_get_adc_mv(uint16_t *pb0_mv, uint16_t *pb1_mv)
 {
-    *pb10_mv = key_adc_mv[0];
-    *pb11_mv = key_adc_mv[1];
+    *pb0_mv = key_adc_mv[0];
+    *pb1_mv = key_adc_mv[1];
 }
