@@ -27,7 +27,8 @@ static void MainTaskFunc( void *pvParameters )
 	OLED_ShowString(0, 0, "HELLO NEEKO", 16);
 	// uint8_t *tmp = NULL;
 	// uint32_t len = 0;
-	buzzer_init();
+	// 初始化蜂鸣器PWM，设置初始占空比为50%便于测试波形输出
+	buzzer_pwm_init(1300,0);
 	//Usart1_SendData((const uint8_t *)testStr, strlen(testStr));
 	while(1)
 	{
@@ -37,7 +38,8 @@ static void MainTaskFunc( void *pvParameters )
 //		}
 		// 添加LED闪烁指示系统运行
 		test_LED();
-        buzzer_test();
+		buzzer_test();
+        oled_test();
 	}
 }
 

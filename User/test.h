@@ -5,4 +5,6 @@
 
 uint8_t test_LED(void);
 uint8_t buzzer_test(void);
+uint8_t oled_test(void);
+
 #endif

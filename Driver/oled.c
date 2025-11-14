@@ -409,6 +409,52 @@ void OLED_ShowString(uint8_t x, uint8_t y, const char *p, uint8_t size)
 }	
 
 /**************************************************************************
+函 数 名:OLED_ShowNum
+功能描述:在指定位置显示一个数字（变量）
+输入参数:
+@x,y:起点坐标 
+@num:要显示的数字
+@len:数字位数
+@size:选择字体 12/16/24
+输出参数:None
+返 回 值:None
+其他说明:支持显示负数，自动转换为字符串后调用OLED_ShowString
+**************************************************************************/
+void OLED_ShowNum(uint8_t x, uint8_t y, int32_t num, uint8_t len, uint8_t size)
+{
+    char buf[12];  // 最大支持10位数字 + 符号 + '\0'
+    uint8_t i = 0;
+    uint8_t neg = 0;
+
+    if(num < 0){
+        neg = 1;
+        num = -num;
+    }
+
+    do{
+        buf[i++] = num % 10 + '0';
+        num /= 10;
+    }while(num > 0);
+
+    if(neg) buf[i++] = '-';
+
+    // 补零到指定长度
+    while(i < len) buf[i++] = '0';
+
+    buf[i] = '\0';
+
+    // 反转字符串
+    for(uint8_t j = 0; j < i/2; j++){
+        char tmp = buf[j];
+        buf[j] = buf[i-1-j];
+        buf[i-1-j] = tmp;
+    }
+
+    OLED_ShowString(x, y, buf, size);
+}
+
+
+/**************************************************************************
 函 数 名:OLED_Init
 功能描述:OLED初始化
 输入参数:None

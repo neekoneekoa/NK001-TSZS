@@ -41,3 +41,4 @@
 .\objects\test.o: ..\STM32F10x_FWLib\inc\misc.h
 .\objects\test.o: ..\BSP\buzzer.h
 .\objects\test.o: test.h
+.\objects\test.o: ..\Driver\oled.h
