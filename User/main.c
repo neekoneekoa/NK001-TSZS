@@ -9,7 +9,8 @@
 #include "key.h"
 #include "buzzer.h"
 #include <string.h>
-
+#include "queue.h"
+QueueHandle_t xKeyQueue = NULL;   /* 定义实体，只能有一次 */
 const char testStr[] = {"123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop\r\n"};
 /**************************************************************************
 函 数 名:MainTaskFunc
@@ -22,14 +23,12 @@ const char testStr[] = {"123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdf
 **************************************************************************/
 static void MainTaskFunc( void *pvParameters )
 {
-	OLED_Init();
 //	PMS5003ST_Init(9600);					//初始化传感器
-	OLED_ShowString(0, 0, "HELLO NEEKO", 16);
+	OLED_Init();
+	OLED_ShowString(0, 0, "HELLO", 16);
+    buzzer_pwm_init(1300,0);
 	// uint8_t *tmp = NULL;
 	// uint32_t len = 0;
-	// 初始化蜂鸣器PWM，设置初始占空比为50%便于测试波形输出
-	buzzer_pwm_init(1300,0);
-	//Usart1_SendData((const uint8_t *)testStr, strlen(testStr));
 	while(1)
 	{
 //		if( 0 == USART1_Read(&tmp, &len, portMAX_DELAY) ){
@@ -37,9 +36,12 @@ static void MainTaskFunc( void *pvParameters )
 //			vPortFree(tmp);
 //		}
 		// 添加LED闪烁指示系统运行
+        // buzzer_test();
 		test_LED();
-		buzzer_test();
+		//buzzer_test();
         oled_test();
+        test_KEY();
+
 	}
 }
 
@@ -72,48 +74,23 @@ static void KeyTaskFunc( void *pvParameters )
 {
     KEY_ID key_last = KEY_NONE;
     KEY_ID key_current;
-    
     // 初始化按键
     key_init();
-    
-
+    OLED_ShowString(50, 0, "NEEKO", 16);
+    //test_init();
+		xKeyQueue = xQueueCreate(16, sizeof(uint8_t));  /* ② 创建队列 */
     while(1)
     {
         // 扫描按键
         key_current = key_scan();
-        
         // 按键状态变化处理（只在按键按下时响应，实现按键消抖）
         if (key_current != KEY_NONE && key_current != key_last)
         {
-            // 按键按下处理
-            switch(key_current)
-            {
-                case KEY_K1:
-                    printf("按键K1被按下\r\n");
-                    break;
-                case KEY_K2:
-                    printf("按键K2被按下\r\n");
-                    break;
-                case KEY_K3:
-                    printf("按键K3被按下\r\n");
-                    break;
-                case KEY_K4:
-                    printf("按键K4被按下\r\n");
-                    break;
-                case KEY_K5:
-                    printf("按键K5被按下\r\n");
-                    break;
-                case KEY_K6:
-                    printf("按键K6被按下\r\n");
-                    break;
-                default:
-                    break;
-            }
+            if (key_current != 0)
+                xQueueSend(xKeyQueue, &key_current, 0);  // 抛给业务任务
         }
-        
         // 保存当前按键状态
         key_last = key_current;
-        
         // 延时20ms进行按键消抖
         vTaskDelay(20 / portTICK_PERIOD_MS);
     }
@@ -128,9 +105,8 @@ int main(void)
     Usart1_Init(115200);                            			//初始化串口
 	printf("HELLO NEEKO\r\n");								//测试串口打印
 	Led_Init();                                      //初始化LED        
-	xTaskCreate( MainTaskFunc, "main", 128, NULL, 2, NULL );
-	xTaskCreate( KeyTaskFunc, "key", 128, NULL, 1, NULL ); // 创建按键任务，优先级设为1
-	
+	xTaskCreate( MainTaskFunc, "main", 128, NULL, 10, NULL );
+	xTaskCreate( KeyTaskFunc, "key", 128, NULL, 9, NULL ); // 创建按键任务，优先级设为1
 	vTaskStartScheduler();
 	return 0;
 }

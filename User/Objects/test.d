@@ -42,3 +42,5 @@
 .\objects\test.o: ..\BSP\buzzer.h
 .\objects\test.o: test.h
 .\objects\test.o: ..\Driver\oled.h
+.\objects\test.o: ..\BSP\key.h
+.\objects\test.o: ..\FreeRTOS\include\queue.h

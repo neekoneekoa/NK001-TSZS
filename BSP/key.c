@@ -1,7 +1,7 @@
 #include "key.h"
 #include "stm32f10x_adc.h"
 #include "stm32f10x.h"  // 根据你的硬件平台选择合适的头文件
-//#include "adc.h"
+#include "stm32f10x_gpio.h"
 #include <stdint.h>
 
 #define KEY_ADC_CHANNEL_K1_K2_K3    ADC_Channel_8    // PB0
@@ -16,11 +16,18 @@
 #define ADC_MV_MIN                  0
 
 
-
-// 初始化 ADC
-void adc_init(uint32_t channel) {
+// 初始化 ADC 和 GPIO
+void adc_init(void) {
     // 使能 ADC 时钟
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+    // 使能 GPIO 时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    
+    // 配置 PB0 和 PB1 为模拟输入模式
+    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
 
     // 配置 ADC
     ADC_InitTypeDef ADC_InitStructure;
@@ -32,22 +39,27 @@ void adc_init(uint32_t channel) {
     ADC_InitStructure.ADC_NbrOfChannel = 1;
     ADC_Init(ADC1, &ADC_InitStructure);
 
-    // 配置 ADC 通道
-    ADC_RegularChannelConfig(ADC1, channel, 1, ADC_SampleTime_1Cycles5);
-
     // 使能 ADC
     ADC_Cmd(ADC1, ENABLE);
 
     // 启动 ADC 校准
     ADC_ResetCalibration(ADC1);
     while (ADC_GetResetCalibrationStatus(ADC1));
-
-    // 启动 ADC 软件转换
-    ADC_SoftwareStartConvCmd(ADC1, ENABLE);
+    ADC_StartCalibration(ADC1);
+    while (ADC_GetCalibrationStatus(ADC1));
 }
 
-// 获取 ADC 值
+// 获取指定通道的 ADC 值
 uint32_t adc_get_value(uint32_t channel) {
+    // 配置当前要读取的通道
+    ADC_RegularChannelConfig(ADC1, channel, 1, ADC_SampleTime_239Cycles5);
+    
+    // 清除转换完成标志
+    ADC_ClearFlag(ADC1, ADC_FLAG_EOC);
+    
+    // 启动 ADC 软件转换
+    ADC_SoftwareStartConvCmd(ADC1, ENABLE);
+    
     // 等待 ADC 转换完成
     while (!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC));
 
@@ -100,11 +112,12 @@ static KEY_ID key_scan_pb1(void)
 // 按键初始化函数
 void key_init(void)
 {
-    // 初始化ADC配置（假设adc_init函数已经实现）
-    // 这里需要初始化PB10和PB11对应的ADC通道
-    // 初始化用于按键的 ADC 通道：PB0 -> ADC_CHANNEL_8, PB1 -> ADC_CHANNEL_9
-    adc_init(KEY_ADC_CHANNEL_K1_K2_K3);
-    adc_init(KEY_ADC_CHANNEL_K4_K5_K6);
+    // 初始化ADC和GPIO
+    adc_init();
+    
+    // 初始化电压值数组
+    key_adc_mv[0] = 0;
+    key_adc_mv[1] = 0;
 }
 
 // 对外接口：扫描所有按键，返回按下的键ID

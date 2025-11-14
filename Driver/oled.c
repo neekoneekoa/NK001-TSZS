@@ -381,7 +381,7 @@ static void OLED_ShowChar(uint8_t x ,uint8_t y, uint8_t chr, uint8_t size, uint8
 函 数 名:OLED_ShowString
 功能描述:显示字符串
 输入参数:
-@x,y:起点坐标 
+@x:0~127
 @y:0~63
 @p:字符串起始地址
 @size:选择字体 12/16/24

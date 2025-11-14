@@ -49,3 +49,4 @@
 .\objects\main.o: ..\BSP\key.h
 .\objects\main.o: ..\BSP\buzzer.h
 .\objects\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\objects\main.o: ..\FreeRTOS\include\queue.h
