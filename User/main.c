@@ -7,6 +7,7 @@
 #include "test.h"
 #include "pms5003st.h"
 #include "key.h"
+#include "buzzer.h"
 #include <string.h>
 
 const char testStr[] = {"123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop\r\n"};
@@ -26,7 +27,7 @@ static void MainTaskFunc( void *pvParameters )
 	OLED_ShowString(0, 0, "HELLO NEEKO", 16);
 	// uint8_t *tmp = NULL;
 	// uint32_t len = 0;
-	
+	buzzer_init();
 	//Usart1_SendData((const uint8_t *)testStr, strlen(testStr));
 	while(1)
 	{
@@ -36,7 +37,7 @@ static void MainTaskFunc( void *pvParameters )
 //		}
 		// 添加LED闪烁指示系统运行
 		test_LED();
-
+        buzzer_test();
 	}
 }
 
@@ -73,6 +74,7 @@ static void KeyTaskFunc( void *pvParameters )
     // 初始化按键
     key_init();
     
+
     while(1)
     {
         // 扫描按键
@@ -123,7 +125,7 @@ int main(void)
 	SysTick_Init();
     Usart1_Init(115200);                            			//初始化串口
 	printf("HELLO NEEKO\r\n");								//测试串口打印
-	Led_Init();
+	Led_Init();                                      //初始化LED        
 	xTaskCreate( MainTaskFunc, "main", 128, NULL, 2, NULL );
 	xTaskCreate( KeyTaskFunc, "key", 128, NULL, 1, NULL ); // 创建按键任务，优先级设为1
 	

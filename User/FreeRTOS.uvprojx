@@ -416,6 +416,11 @@
               <FileType>1</FileType>
               <FilePath>..\BSP\key.c</FilePath>
             </File>
+            <File>
+              <FileName>buzzer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\buzzer.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

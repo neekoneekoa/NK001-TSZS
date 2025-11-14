@@ -39,4 +39,5 @@
 .\objects\test.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
 .\objects\test.o: ..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h
 .\objects\test.o: ..\STM32F10x_FWLib\inc\misc.h
+.\objects\test.o: ..\BSP\buzzer.h
 .\objects\test.o: test.h
