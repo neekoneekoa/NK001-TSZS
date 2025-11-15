@@ -8,9 +8,9 @@
 #define KEY_ADC_CHANNEL_K4_K5_K6    ADC_Channel_9    // PB1
 
 #define KEY_NONE_PRESS_MV           5000    // 无按键时接近5V
-#define KEY3_PRESS_MV               2600    // 3个二极管压降≈0.7V*3
-#define KEY2_PRESS_MV               1900    // 2个二极管压降≈0.7V*2
-#define KEY1_PRESS_MV               1200    // 1个二极管压降≈0.7V*1
+#define KEY3_PRESS_MV               1650    // 3个二极管压降≈0.7V*3
+#define KEY2_PRESS_MV               1100    // 2个二极管压降≈0.7V*2
+#define KEY1_PRESS_MV               550    // 1个二极管压降≈0.7V*1
 
 #define ADC_MV_MAX                  5000
 #define ADC_MV_MIN                  0
@@ -91,8 +91,8 @@ static KEY_ID key_decode_mv(uint16_t mv)
         return KEY_NONE;
 }
 
-// 扫描PB0对应的K1/K2/K3
-static KEY_ID key_scan_pb0(void)
+// 扫描PB0对应的K1/K3/K5
+static KEY_ID key_scan_pb10(void)
 {
     uint16_t adc_raw;
     adc_raw = adc_get_value(KEY_ADC_CHANNEL_K1_K2_K3);
@@ -100,8 +100,8 @@ static KEY_ID key_scan_pb0(void)
     return key_decode_mv(key_adc_mv[0]);
 }
 
-// 扫描PB1对应的K4/K5/K6
-static KEY_ID key_scan_pb1(void)
+// 扫描PB1对应的K2/K4/K6
+static KEY_ID key_scan_pb11(void)
 {
     uint16_t adc_raw;
     adc_raw = adc_get_value(KEY_ADC_CHANNEL_K4_K5_K6);
@@ -125,13 +125,13 @@ KEY_ID key_scan(void)
 {
     KEY_ID key;
 
-    key = key_scan_pb0();
+    key = key_scan_pb10();
     if (key != KEY_NONE)
-        return key;
+        return (key*2-1);
 
-    key = key_scan_pb1();
+    key = key_scan_pb11();
     if (key != KEY_NONE)
-        return (KEY_ID)(key + 3);   // PB1的键映射为K4/K5/K6
+        return (key*2);   
 
     return KEY_NONE;
 }

@@ -42,6 +42,26 @@ other:None
 */
 int USART1_Read(uint8_t **rData, uint32_t *rDataLen, uint32_t timeout);
 
+/**
+name:USART1_ParseData
+function:串口1数据解析
+input:
+@data:待解析的数据指针
+@length:数据长度
+output:None
+return:None
+other:None
+*/
+void USART1_ParseData(uint8_t *data, uint32_t length);
 
+/**
+name:USART1_ShowWaiting
+function:显示等待接收数据的提示信息
+input:None
+output:None
+return:None
+other:None
+*/
+void USART1_ShowWaiting(void);
 
 #endif

@@ -43,3 +43,4 @@
 .\objects\usart1.o: ..\FreeRTOS\include\list.h
 .\objects\usart1.o: ..\FreeRTOS\include\timers.h
 .\objects\usart1.o: ..\FreeRTOS\include\queue.h
+.\objects\usart1.o: ..\Driver\oled.h

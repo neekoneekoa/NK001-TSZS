@@ -27,22 +27,16 @@ Project File Date:  11/14/2025
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'FreeRTOS'
-compiling test.c...
-test.c(112): warning:  #223-D: function "OLED_ShowNum" declared implicitly
-              OLED_ShowNum(0, 48, 1, 1, 16);
-test.c(147): warning:  #223-D: function "OLED_ShowNum" declared implicitly
-              OLED_ShowNum(32, 32, pb0_mv, 4, 16);
-test.c(154): warning:  #223-D: function "OLED_ShowNum" declared implicitly
-              OLED_ShowNum(32, 48, pb1_mv, 4, 16);
-test.c(164): warning:  #1-D: last line of file ends without a newline
-  }
-test.c(23): warning:  #177-D: variable "next_update_tick"  was declared but never referenced
-  static uint32_t next_update_tick = 0;
-test.c: 5 warnings, 0 errors
+compiling key.c...
+..\BSP\key.c(130): warning:  #188-D: enumerated type mixed with another type
+          return (key*2-1);
+..\BSP\key.c(134): warning:  #188-D: enumerated type mixed with another type
+          return (key*2);   
+..\BSP\key.c: 2 warnings, 0 errors
 linking...
-Program Size: Code=16924 RO-data=6416 RW-data=184 ZI-data=20040  
+Program Size: Code=16236 RO-data=6416 RW-data=184 ZI-data=20104  
 FromELF: creating hex file...
-".\Objects\USART.axf" - 0 Error(s), 5 Warning(s).
+".\Objects\USART.axf" - 0 Error(s), 2 Warning(s).
 
 <h2>Software Packages used:</h2>
 

@@ -5,10 +5,12 @@
 #include "task.h"
 #include "timers.h"
 #include "queue.h"
+#include "oled.h"
 
 #define USAER1_RX_MAX        	128    //串口1最大接收数据量
 #define USAER1_TX_MAX         	128 
 #define USART1_RX_FIFO_MAX		(1024)
+#define DATA_FRAME_BUFFER_SIZE      64              // 数据帧缓冲区大小
 
 static uint8_t USART1_TX_Buff[USAER1_TX_MAX];
 static uint8_t USART1_RX_Buff[USAER1_RX_MAX];
@@ -27,6 +29,11 @@ typedef struct{
 }USART1_RX_FIFO_t;
 static USART1_RX_FIFO_t usart1Fifo;
 QueueHandle_t  uartRecQueue;
+
+// 数据帧处理相关变量
+static uint8_t frame_buffer[DATA_FRAME_BUFFER_SIZE];// 数据帧缓冲区
+static uint8_t frame_index = 0;                     // 帧索引
+static uint8_t is_receiving_frame = 0;              // 帧接收状态标志
 
 /**************************************************************************
 函 数 名:Usart1_Send_DMA_Init
@@ -160,6 +167,122 @@ static void Usart1_Receive_DMA_Init(void)
 	DMA_ITConfig(DMA1_Channel5, DMA_IT_TC | DMA_IT_HT | DMA_IT_TE, ENABLE);
 	
 	DMA_Cmd(DMA1_Channel5,ENABLE);
+}
+
+/**************************************************************************
+函数名: USART1_ProcessFrame
+功能描述: 处理接收到的完整数据帧并显示在OLED上
+输入参数: frame - 数据帧指针
+         length - 数据帧长度
+返回值: 无
+**************************************************************************/
+static void USART1_ProcessFrame(uint8_t *frame, uint8_t length)
+{
+    uint8_t i;
+    uint8_t display_data[17];  // 每行最多16个字符 + 结束符
+    uint8_t actual_data_count = 0;
+    uint8_t display_row = 0;
+    
+    // 清空OLED屏幕
+    OLED_Clear();
+    
+    // 计算实际需要显示的数据量（去掉帧头0x55和帧尾0xDD）
+    if (length > 2) {
+        actual_data_count = length - 2;
+    }
+    
+    // 显示帧内容（以十六进制形式，每行最多显示8个字节，跳过帧头和帧尾）
+    if (actual_data_count > 0) {
+        // 从第一行开始显示数据（跳过帧头）
+        for (i = 1; i < length - 1; i++)  // 跳过帧头0x55和帧尾0xDD
+        {
+            uint8_t pos = (i - 1) % 8 * 2;  // 每个字节占用5个字符位置："XX"
+            uint8_t row = (i - 1) / 8;
+            
+            if (row > 4) {  // 最多显示5行数据（OLED通常是128x64，每行16像素，可显示4行）
+                // 超出显示范围，显示过长提示
+                OLED_Clear();
+                OLED_ShowString(0, 0, "Data Too Long", 16);
+                return;
+            }
+            
+            // 格式化显示数据
+            display_data[pos + 0] = (frame[i] >> 4) < 10 ? (frame[i] >> 4) + '0' : (frame[i] >> 4) - 10 + 'A';
+            display_data[pos + 1] = (frame[i] & 0x0F) < 10 ? (frame[i] & 0x0F) + '0' : (frame[i] & 0x0F) - 10 + 'A';
+            
+            // 当完成一行数据或者处理完所有数据时，显示该行
+            if (((i - 1) % 8 == 7) || (i == length - 2)) {
+                display_data[((i - 1) % 8 + 1) * 5] = '\0';  // 添加结束符
+                OLED_ShowString(0, row * 16, display_data, 16);
+                display_row = row;
+            }
+        }
+    }
+}
+
+/**************************************************************************
+函数名: USART1_ShowWaiting
+功能描述: 显示等待接收数据的提示信息
+输入参数: 无
+返回值: 无
+**************************************************************************/
+void USART1_ShowWaiting(void)
+{
+    static uint8_t initialized = 0;
+    
+    if (!initialized) {
+        OLED_Clear();
+        OLED_ShowString(0, 0, "UART", 16);
+        initialized = 1;
+    }
+}
+
+/**************************************************************************
+函数名: USART1_ParseData
+功能描述: 解析串口接收的数据，识别以0X55开始、0XDD结束的数据帧
+输入参数: data - 接收到的数据
+         length - 数据长度
+返回值: 无
+**************************************************************************/
+void USART1_ParseData(uint8_t *data, uint32_t length)
+{
+    uint32_t i;
+    
+    for (i = 0; i < length; i++)
+    {
+        uint8_t current_byte = data[i];
+        
+        // 检查是否是帧开始标志
+        if (current_byte == 0x55)
+        {
+            // 开始新帧
+            frame_index = 0;
+            is_receiving_frame = 1;
+            frame_buffer[frame_index++] = current_byte;  // 保存帧头
+        }
+        // 如果正在接收帧
+        else if (is_receiving_frame)
+        {
+            // 检查是否是帧结束标志
+            if (current_byte == 0xDD)
+            {
+                // 保存结束标志并处理完整帧
+                if (frame_index < DATA_FRAME_BUFFER_SIZE - 1)
+                {
+                    frame_buffer[frame_index++] = current_byte;
+                    USART1_ProcessFrame(frame_buffer, frame_index);
+                }
+                // 重置状态
+                is_receiving_frame = 0;
+                frame_index = 0;
+            }
+            // 保存中间数据
+            else if (frame_index < DATA_FRAME_BUFFER_SIZE - 1)
+            {
+                frame_buffer[frame_index++] = current_byte;
+            }
+        }
+    }
 }
 
 /**************************************************************************
@@ -328,26 +451,30 @@ int USART1_Read(uint8_t **rData, uint32_t *rDataLen, uint32_t timeout)
 
     if( usart1Fifo.coverFlag ){
         usart1Fifo.coverFlag = 0;
-		printf("usart1Receive.fifo.coverFlag\r\n");
+	printf("usart1Receive.fifo.coverFlag\r\n");
         return -1;
     }
 
     if( usartRead.er_p >= usartRead.sr_p ){ //结束地址大于开始地址
-		*rDataLen = usartRead.er_p - usartRead.sr_p + 1;
-		p = pvPortMalloc(*rDataLen + 1);
-		if( p != NULL ){
-			memset(p, 0, *rDataLen + 1);
-			memcpy(p, &usart1Fifo.buff[usartRead.sr_p], *rDataLen);
-		}
+	*rDataLen = usartRead.er_p - usartRead.sr_p + 1;
+	p = pvPortMalloc(*rDataLen + 1);
+	if( p != NULL ){
+		memset(p, 0, *rDataLen + 1);
+		memcpy(p, &usart1Fifo.buff[usartRead.sr_p], *rDataLen);
+		// 解析接收到的数据
+		USART1_ParseData(p, *rDataLen);
+	}
 	}else{    //结束地址小于开始地址
-		tempLen = USART1_RX_FIFO_MAX - usartRead.sr_p;
-		*rDataLen = tempLen + usartRead.er_p +1;
+	tempLen = USART1_RX_FIFO_MAX - usartRead.sr_p;
+	*rDataLen = tempLen + usartRead.er_p +1;
 
     p = pvPortMalloc(*rDataLen + 1);
     if( p != NULL ){
       memset(p, 0, *rDataLen + 1);
       memcpy(p, &usart1Fifo.buff[usartRead.sr_p], tempLen);
       memcpy(p + tempLen, usart1Fifo.buff, usartRead.er_p + 1);
+      // 解析接收到的数据
+      USART1_ParseData(p, *rDataLen);
     }
   }
 

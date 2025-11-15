@@ -23,22 +23,24 @@ const char testStr[] = {"123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdf
 **************************************************************************/
 static void MainTaskFunc( void *pvParameters )
 {
-//	PMS5003ST_Init(9600);					//初始化传感器
-	OLED_Init();
-	OLED_ShowString(0, 0, "HELLO", 16);
-    buzzer_pwm_init(1300,0);
-	// uint8_t *tmp = NULL;
-	// uint32_t len = 0;
+    uint8_t *tmp = NULL;
+    uint32_t len = 0;
+    
+    // 初始化OLED并显示等待状态
+    OLED_Init();
+    USART1_ShowWaiting();
+    
 	while(1)
-	{
-//		if( 0 == USART1_Read(&tmp, &len, portMAX_DELAY) ){
-//			Usart1_SendData(tmp, len);
-//			vPortFree(tmp);
-//		}
-		// 添加LED闪烁指示系统运行
-        // buzzer_test();
-		test_LED();
-		//buzzer_test();
+    {
+        // 检查串口1接收队列
+        if( 0 == USART1_Read(&tmp, &len, 10) ){
+            // 数据已经在USART1_Read内部被解析和处理
+            vPortFree(tmp);
+        }
+        
+        // 添加LED闪烁指示系统运行
+        test_LED();
+        //buzzer_test();
         oled_test();
         test_KEY();
 
@@ -76,9 +78,12 @@ static void KeyTaskFunc( void *pvParameters )
     KEY_ID key_current;
     // 初始化按键
     key_init();
-    OLED_ShowString(50, 0, "NEEKO", 16);
     //test_init();
-    xKeyQueue = xQueueCreate(16, sizeof(uint8_t));  /* ② 创建队列 */
+    xKeyQueue = xQueueCreate(10, sizeof(uint8_t));  /* 创建队列 */
+    if(xKeyQueue == NULL)
+    {
+        // 队列创建失败处理
+    }
     while(1)
     {
         // 扫描按键
@@ -98,12 +103,12 @@ static void KeyTaskFunc( void *pvParameters )
 
 int main(void)
 {
-    /* 串口接收将使用中断，所以要配置中断优先级的分组模式,此处配置为模式2,即2bit表示主优先级,2bit表示次优先级 */
+    /* 配置中断优先级分组为4 */
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); 
 	Clock_Init();						//使用内部晶振
 	SysTick_Init();
-    Usart1_Init(115200);                            			//初始化串口
-	printf("HELLO NEEKO\r\n");								//测试串口打印
+    Usart1_Init(115200);                             			//初始化串口
+	printf("HELLO NEEKO\r\n");						//测试串口打印
 	Led_Init();                                      //初始化LED        
 	xTaskCreate( MainTaskFunc, "main", 128, NULL, 8, NULL ); // 降低主任务优先级
 	xTaskCreate( KeyTaskFunc, "key", 128, NULL, 9, NULL ); // 按键任务优先级更高
