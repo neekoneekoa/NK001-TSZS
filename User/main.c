@@ -78,7 +78,7 @@ static void KeyTaskFunc( void *pvParameters )
     key_init();
     OLED_ShowString(50, 0, "NEEKO", 16);
     //test_init();
-		xKeyQueue = xQueueCreate(16, sizeof(uint8_t));  /* ② 创建队列 */
+    xKeyQueue = xQueueCreate(16, sizeof(uint8_t));  /* ② 创建队列 */
     while(1)
     {
         // 扫描按键
@@ -87,7 +87,7 @@ static void KeyTaskFunc( void *pvParameters )
         if (key_current != KEY_NONE && key_current != key_last)
         {
             if (key_current != 0)
-                xQueueSend(xKeyQueue, &key_current, 0);  // 抛给业务任务
+                xQueueSend(xKeyQueue, &key_current, 0);  // 抛给业务任务        
         }
         // 保存当前按键状态
         key_last = key_current;
@@ -105,8 +105,8 @@ int main(void)
     Usart1_Init(115200);                            			//初始化串口
 	printf("HELLO NEEKO\r\n");								//测试串口打印
 	Led_Init();                                      //初始化LED        
-	xTaskCreate( MainTaskFunc, "main", 128, NULL, 10, NULL );
-	xTaskCreate( KeyTaskFunc, "key", 128, NULL, 9, NULL ); // 创建按键任务，优先级设为1
+	xTaskCreate( MainTaskFunc, "main", 128, NULL, 8, NULL ); // 降低主任务优先级
+	xTaskCreate( KeyTaskFunc, "key", 128, NULL, 9, NULL ); // 按键任务优先级更高
 	vTaskStartScheduler();
 	return 0;
 }

@@ -9,6 +9,15 @@
 #include "task.h"
 #include "oledfont.h"
 
+// CPU指令延时宏定义，根据实际系统时钟调整
+#define CPU_DELAY_NOP()  __NOP()
+#define CPU_DELAY_US(us) { \
+    uint32_t i; \
+    for(i = 0; i < (us * 8); i++) { \
+        CPU_DELAY_NOP(); \
+    } \
+}
+
 // IIC总线引脚定义
 #define OLED_SCL_Clr()	GPIO_ResetBits(GPIOB,GPIO_Pin_8)  // SCL - PB8
 #define OLED_SCL_Set()	GPIO_SetBits(GPIOB,GPIO_Pin_8)
@@ -90,9 +99,9 @@ static void IIC_Start(void)
 {
 	OLED_SDA_Set();
 	OLED_SCL_Set();
-	vTaskDelay(1);
+	CPU_DELAY_US(1); // 用CPU延时替代任务延时
 	OLED_SDA_Clr();
-	vTaskDelay(1);
+	CPU_DELAY_US(1);
 	OLED_SCL_Clr();
 }
 
@@ -108,9 +117,9 @@ static void IIC_Stop(void)
 {
 	OLED_SDA_Clr();
 	OLED_SCL_Set();
-	vTaskDelay(1);
+	CPU_DELAY_US(1); // 用CPU延时替代任务延时
 	OLED_SDA_Set();
-	vTaskDelay(1);
+	CPU_DELAY_US(1);
 }
 
 /**************************************************************************
@@ -126,9 +135,9 @@ static uint8_t IIC_Wait_Ack(void)
 	uint8_t ucErrTime=0;
 	
 	OLED_SDA_Set();
-	vTaskDelay(1);
+	CPU_DELAY_US(1); // 用CPU延时替代任务延时
 	OLED_SCL_Set();
-	vTaskDelay(1);
+	CPU_DELAY_US(1);
 	
 	while(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_9))
 	{
@@ -138,6 +147,7 @@ static uint8_t IIC_Wait_Ack(void)
 			IIC_Stop();
 			return 1;
 		}
+		CPU_DELAY_US(1); // 添加小延时避免CPU空转过快
 	}
 	
 	OLED_SCL_Clr();
@@ -155,9 +165,9 @@ static uint8_t IIC_Wait_Ack(void)
 static void IIC_Ack(void)
 {
 	OLED_SDA_Clr();
-	vTaskDelay(1);
+	CPU_DELAY_US(1); // 用CPU延时替代任务延时
 	OLED_SCL_Set();
-	vTaskDelay(1);
+	CPU_DELAY_US(1);
 	OLED_SCL_Clr();
 }
 
@@ -172,9 +182,9 @@ static void IIC_Ack(void)
 static void IIC_NAck(void)
 {
 	OLED_SDA_Set();
-	vTaskDelay(1);
+	CPU_DELAY_US(1); // 用CPU延时替代任务延时
 	OLED_SCL_Set();
-	vTaskDelay(1);
+	CPU_DELAY_US(1);
 	OLED_SCL_Clr();
 }
 
@@ -200,9 +210,9 @@ static void IIC_Write_Byte(uint8_t dat)
 		
 		dat<<=1;
 		OLED_SCL_Set();
-		vTaskDelay(1);
+		CPU_DELAY_US(1); // 用CPU延时替代任务延时
 		OLED_SCL_Clr();
-		vTaskDelay(1);
+		CPU_DELAY_US(1);
 	}
 }
 
