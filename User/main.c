@@ -8,6 +8,7 @@
 #include "pms5003st.h"
 #include "key.h"
 #include "buzzer.h"
+#include "../BSP/pwm.h"
 #include <string.h>
 #include "queue.h"
 QueueHandle_t xKeyQueue = NULL;   /* 定义实体，只能有一次 */
@@ -105,11 +106,12 @@ int main(void)
 {
     /* 配置中断优先级分组为4 */
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); 
-	Clock_Init();						//使用内部晶振
+	Clock_Init();				//使用内部晶振
 	SysTick_Init();
-    Usart1_Init(115200);                             			//初始化串口
+    Usart1_Init(115200);                              		//初始化串口
 	printf("HELLO NEEKO\r\n");						//测试串口打印
 	Led_Init();                                      //初始化LED        
+	pwm_init();                                      //初始化PWM        
 	xTaskCreate( MainTaskFunc, "main", 128, NULL, 8, NULL ); // 降低主任务优先级
 	xTaskCreate( KeyTaskFunc, "key", 128, NULL, 9, NULL ); // 按键任务优先级更高
 	vTaskStartScheduler();

@@ -44,3 +44,4 @@
 .\objects\test.o: ..\Driver\oled.h
 .\objects\test.o: ..\BSP\key.h
 .\objects\test.o: ..\FreeRTOS\include\queue.h
+.\objects\test.o: ../BSP/pwm.h

@@ -34,6 +34,7 @@
 ".\objects\systick.o"
 ".\objects\usart1.o"
 ".\objects\usart2.o"
+".\objects\pwm.o"
 ".\objects\croutine.o"
 ".\objects\event_groups.o"
 ".\objects\list.o"

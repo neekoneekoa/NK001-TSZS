@@ -6,8 +6,18 @@
 #include "oled.h"
 #include "key.h"
 #include "queue.h"
+#include "../BSP/pwm.h"
 static uint8_t key1;
 extern QueueHandle_t xKeyQueue;   /* 告诉编译器实体在别处 */
+
+// 定义界面类型
+typedef enum {
+    INTERFACE_PWM,
+    INTERFACE_LED
+} INTERFACE_TYPE;
+
+// 当前界面变量
+static INTERFACE_TYPE current_interface = INTERFACE_PWM;
 
 // 定义LED延时常量
 #define LED_DELAY_MS 200
@@ -100,16 +110,82 @@ uint8_t buzzer_test(void){
 }
 
 uint8_t oled_test(void){
-    //OLED_ShowNum(0, 16, 0, 1, 16);
+    // 根据当前界面显示不同内容
+    switch(current_interface) {
+        case INTERFACE_PWM:
+            // PWM界面
+            OLED_ShowString(0, 0, "PWM", 16);  // 界面名称
+            OLED_ShowString(0, 16, "PWM Duty:", 16);
+            OLED_ShowNum(80, 16, pwm_get_duty(), 3, 16);
+            OLED_ShowString(110, 16, "%", 16);
+            break;
+        case INTERFACE_LED:
+            // LED界面
+            OLED_ShowString(0, 0, "LED", 16);   // 界面名称
+            OLED_ShowString(0, 16, "LED State:", 16);
+            OLED_ShowNum(80, 16, led_state, 1, 16);
+            break;
+    }
     return 1;
 }
 
 uint8_t test_KEY(void){
         uint16_t pb0_mv, pb1_mv;
+        uint8_t current_duty;
         // 按键按下处理
         if (xQueueReceive(xKeyQueue, &key1, 0) == pdTRUE)
         {
             OLED_ShowNum(0, 48, key1, 1, 16);
+            
+            // 处理界面切换
+            if (key1 == KEY_K1) {
+                // 切换界面
+                current_interface = (current_interface + 1) % 2;
+                // 清屏
+                OLED_Clear();
+            } else {
+                // 根据当前界面处理其他按键
+                switch(current_interface) {
+                    case INTERFACE_PWM:
+                        // PWM界面：调节占空比
+                        current_duty = pwm_get_duty();
+                        switch(key1)
+                        {
+                            case KEY_K5: // 增加占空比
+                                if (current_duty < 100)
+                                {
+                                    current_duty += 5;
+                                    pwm_set_duty(current_duty);
+                                }
+                                break;
+                            case KEY_K6: // 减少占空比
+                                if (current_duty > 0)
+                                {
+                                    current_duty -= 5;
+                                    pwm_set_duty(current_duty);
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case INTERFACE_LED:
+                        // LED界面：控制LED
+                        switch(key1)
+                        {
+                            case KEY_K2: // 点亮LED
+                                Led1_On();
+                                break;
+                            case KEY_K3: // 熄灭LED
+                                Led1_Off();
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                }
+            }
+            
             // // 按键按下时蜂鸣器响一下
             // buzzer_on();
             // vTaskDelay(100 / portTICK_PERIOD_MS);
