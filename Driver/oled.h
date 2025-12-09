@@ -57,6 +57,8 @@ void OLED_Init( void );
 **************************************************************************/
 void OLED_ShowString(uint8_t x, uint8_t y, const char *p, uint8_t size);
 
+void OLED_ShowNum(uint8_t x, uint8_t y, int32_t num, uint8_t len, uint8_t size);
+
 /**************************************************************************
 函 数 名:OLED_ShowPicture
 功能描述:显示自定义图片

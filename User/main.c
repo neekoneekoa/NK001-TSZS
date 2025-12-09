@@ -14,6 +14,17 @@
 #include "queue.h"
 QueueHandle_t xKeyQueue = NULL;   /* 定义实体，只能有一次 */
 const char testStr[] = {"123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop123456789zxcvbnmasdfghjklqwertyuiop\r\n"};
+volatile uint32_t g_uptime_seconds = 0;
+typedef enum { LED_MODE_ON, LED_MODE_OFF, LED_MODE_LONG_OFF, LED_MODE_BREATH, LED_MODE_BLINK } LedMode;
+typedef struct {
+    LedMode mode;
+    uint8_t brightness;
+    uint16_t breath_time_ms;
+    uint16_t blink_count;
+    uint16_t single_blink_time_ms;
+    uint32_t sustain_blink_time_ms;
+} LedCommand;
+QueueHandle_t xLedQueue = NULL;
 /**************************************************************************
 函 数 名:MainTaskFunc
 功能描述:主任务。
@@ -43,6 +54,8 @@ static void MainTaskFunc( void *pvParameters )
             // 数据已经在USART1_Read内部被解析和处理
             vPortFree(tmp);
         }
+
+        /* LED1呼吸效果已迁移至独立任务BreathTaskFunc，此处仅保留占位 */
         
         // 更新菜单显示
         menu_update();
@@ -109,6 +122,52 @@ static void KeyTaskFunc( void *pvParameters )
     }
 }
 
+static void TimeKeeperTaskFunc( void *pvParameters )
+{
+    TickType_t last = xTaskGetTickCount();
+    const TickType_t period = pdMS_TO_TICKS(1000);
+    for( ;; )
+    {
+        vTaskDelayUntil(&last, period);
+        g_uptime_seconds++;
+    }
+}
+
+static void LedTaskFunc( void *pvParameters )
+{
+    Led_Mode_Breath(50, 2000);
+    TickType_t last = xTaskGetTickCount();
+    for(;;)
+    {
+        LedCommand cmd;
+        if (xQueueReceive(xLedQueue, &cmd, 0) == pdTRUE) {
+            switch(cmd.mode){
+                case LED_MODE_ON: Led_Mode_On(cmd.brightness); break;
+                case LED_MODE_OFF: Led_Mode_Off(); break;
+                case LED_MODE_LONG_OFF: Led_Mode_LongOff(cmd.sustain_blink_time_ms); break;
+                case LED_MODE_BREATH: Led_Mode_Breath(cmd.brightness, cmd.breath_time_ms); break;
+                case LED_MODE_BLINK: Led_Mode_Blink(cmd.brightness, cmd.single_blink_time_ms, cmd.blink_count, cmd.sustain_blink_time_ms); break;
+            }
+        }
+        vTaskDelayUntil(&last, pdMS_TO_TICKS(1));
+        Led_Update_1ms();
+    }
+}
+
+void LedRequestBreath(uint8_t brightness, uint16_t breath_time_ms)
+{
+    LedCommand c;
+    c.mode = LED_MODE_BREATH;
+    c.brightness = brightness;
+    c.breath_time_ms = breath_time_ms;
+    c.blink_count = 0;
+    c.single_blink_time_ms = 0;
+    c.sustain_blink_time_ms = 0;
+    if (xLedQueue) {
+        xQueueSend(xLedQueue, &c, 0);
+    }
+}
+
 int main(void)
 {
     /* 配置中断优先级分组为4 */
@@ -117,10 +176,13 @@ int main(void)
 	SysTick_Init();
     Usart1_Init(115200);                              		//初始化串口
 	printf("HELLO NEEKO\r\n");						//测试串口打印
-	Led_Init();                                      //初始化LED        
-	pwm_init();                                      //初始化PWM        
-	xTaskCreate( MainTaskFunc, "main", 128, NULL, 8, NULL ); // 降低主任务优先级
-	xTaskCreate( KeyTaskFunc, "key", 128, NULL, 9, NULL ); // 按键任务优先级更高
-	vTaskStartScheduler();
-	return 0;
+    Led_Init();                                      //初始化LED        
+    pwm_init();                                      //初始化PWM        
+    xLedQueue = xQueueCreate(10, sizeof(LedCommand));
+    xTaskCreate( MainTaskFunc, "main", 128, NULL, 8, NULL ); // 降低主任务优先级
+    xTaskCreate( KeyTaskFunc, "key", 128, NULL, 9, NULL ); // 按键任务优先级更高
+    xTaskCreate( TimeKeeperTaskFunc, "time", 128, NULL, 10, NULL );
+    xTaskCreate( LedTaskFunc, "led", 128, NULL, 7, NULL );
+    vTaskStartScheduler();
+    return 0;
 }

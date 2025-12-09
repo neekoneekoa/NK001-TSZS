@@ -3,9 +3,12 @@
 #include "buzzer.h"
 #include "../BSP/pwm.h"
 #include "queue.h"
+#include <stdio.h>
+extern volatile uint32_t g_uptime_seconds;
 
 // 声明按键队列
 extern QueueHandle_t xKeyQueue;
+extern void LedRequestBreath(uint8_t brightness, uint16_t breath_time_ms);
 
 // 当前菜单变量
 static MENU_TYPE current_menu = MENU_MAIN;
@@ -19,13 +22,21 @@ static MenuExitFunc menu_exit_funcs[MENU_COUNT];
 static void main_menu_init(void) {
     OLED_Clear();
     OLED_ShowString(0, 0, "Main Menu", 16);
-    OLED_ShowString(0, 16, "1:PWM", 16);
-    OLED_ShowString(0, 32, "2:ADC", 16);
-    OLED_ShowString(0, 48, "3:GPIO", 16);
+    LedRequestBreath(50, 2000);
 }
 
 static void main_menu_loop(void) {
-    // 主界面不需要持续更新
+    static uint32_t last = 0;
+    uint32_t sec = g_uptime_seconds;
+    if (sec != last) {
+        last = sec;
+        uint32_t h = sec / 3600U;
+        uint32_t m = (sec % 3600U) / 60U;
+        uint32_t s = sec % 60U;
+        char buf[12];
+        sprintf(buf, "%02lu:%02lu:%02lu", (unsigned long)(h % 100U), (unsigned long)m, (unsigned long)s);
+        OLED_ShowString(80, 0, buf, 16);
+    }
 }
 
 static void main_menu_exit(void) {

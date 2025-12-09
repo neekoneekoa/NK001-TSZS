@@ -45,3 +45,4 @@
 .\objects\oled_menu.o: ..\BSP\buzzer.h
 .\objects\oled_menu.o: ../BSP/pwm.h
 .\objects\oled_menu.o: ..\FreeRTOS\include\queue.h
+.\objects\oled_menu.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
