@@ -415,6 +415,11 @@
               <FilePath>.\test.c</FilePath>
             </File>
             <File>
+              <FileName>oled_menu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\oled_menu.c</FilePath>
+            </File>
+            <File>
               <FileName>key.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\BSP\key.c</FilePath>

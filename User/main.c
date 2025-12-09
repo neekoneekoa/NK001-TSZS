@@ -9,6 +9,7 @@
 #include "key.h"
 #include "buzzer.h"
 #include "../BSP/pwm.h"
+#include "oled_menu.h"
 #include <string.h>
 #include "queue.h"
 QueueHandle_t xKeyQueue = NULL;   /* 定义实体，只能有一次 */
@@ -26,10 +27,14 @@ static void MainTaskFunc( void *pvParameters )
 {
     uint8_t *tmp = NULL;
     uint32_t len = 0;
+    uint8_t key;
     
     // 初始化OLED并显示等待状态
     OLED_Init();
     USART1_ShowWaiting();
+    
+    // 初始化菜单系统
+    menu_init();
     
 	while(1)
     {
@@ -39,11 +44,13 @@ static void MainTaskFunc( void *pvParameters )
             vPortFree(tmp);
         }
         
-        // 添加LED闪烁指示系统运行
-        test_LED();
-        //buzzer_test();
-        oled_test();
-        test_KEY();
+        // 更新菜单显示
+        menu_update();
+        
+        // 处理按键
+        if (xQueueReceive(xKeyQueue, &key, 0) == pdTRUE) {
+            menu_handle_key((KEY_ID)key);
+        }
 
 	}
 }

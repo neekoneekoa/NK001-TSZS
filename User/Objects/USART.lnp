@@ -5,6 +5,7 @@
 ".\objects\system_stm32f10x.o"
 ".\objects\startup_stm32f10x_hd.o"
 ".\objects\test.o"
+".\objects\oled_menu.o"
 ".\objects\key.o"
 ".\objects\buzzer.o"
 ".\objects\misc.o"
