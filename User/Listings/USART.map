@@ -860,6 +860,8 @@ Section Cross References
     oled.o(i.OLED_ShowChar) refers to oled.o(i.OLED_DrawPoint) for OLED_DrawPoint
     oled.o(i.OLED_ShowChar) refers to oled.o(.constdata) for .constdata
     oled.o(i.OLED_ShowNum) refers to oled.o(i.OLED_ShowString) for OLED_ShowString
+    oled.o(i.OLED_ShowPicture) refers to oled.o(i.OLED_DrawPoint) for OLED_DrawPoint
+    oled.o(i.OLED_ShowPicture) refers to oled.o(i.OLED_Refresh_Gram) for OLED_Refresh_Gram
     oled.o(i.OLED_ShowString) refers to oled.o(i.OLED_Clear) for OLED_Clear
     oled.o(i.OLED_ShowString) refers to oled.o(i.OLED_ShowChar) for OLED_ShowChar
     oled.o(i.OLED_ShowString) refers to oled.o(i.OLED_Refresh_Gram) for OLED_Refresh_Gram
@@ -1716,6 +1718,7 @@ Removing Unused input sections from the image.
     Removing port.o(i.vPortEndScheduler), (32 bytes).
     Removing oled.o(i.OLED_Display_Off), (30 bytes).
     Removing oled.o(i.OLED_Display_On), (30 bytes).
+    Removing oled.o(i.OLED_ShowPicture), (120 bytes).
     Removing pms5003st.o(i.GetWordFromBuff), (36 bytes).
     Removing pms5003st.o(i.PMS5003ST_Init), (92 bytes).
     Removing pms5003st.o(i.PMS5003ST_TaskFunc), (672 bytes).
@@ -1725,7 +1728,7 @@ Removing Unused input sections from the image.
     Removing f2d.o(.text), (38 bytes).
     Removing fepilogue.o(.text), (110 bytes).
 
-565 unused section(s) (total 26046 bytes) removed from the image.
+566 unused section(s) (total 26166 bytes) removed from the image.
 
 ==============================================================================
 
@@ -2545,34 +2548,34 @@ Memory Map of the image
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
     0x08000000   0x08000000   0x00000130   Data   RO          315    RESET               startup_stm32f10x_hd.o
-    0x08000130   0x08000130   0x00000000   Code   RO         5109  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
-    0x08000130   0x08000130   0x00000004   Code   RO         5387    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
-    0x08000134   0x08000134   0x00000004   Code   RO         5390    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
-    0x08000138   0x08000138   0x00000000   Code   RO         5392    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
-    0x08000138   0x08000138   0x00000000   Code   RO         5394    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
-    0x08000138   0x08000138   0x00000008   Code   RO         5395    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
-    0x08000140   0x08000140   0x00000000   Code   RO         5397    .ARM.Collect$$$$0000000D  mc_w.l(entry10a.o)
-    0x08000140   0x08000140   0x00000000   Code   RO         5399    .ARM.Collect$$$$0000000F  mc_w.l(entry11a.o)
-    0x08000140   0x08000140   0x00000004   Code   RO         5388    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
+    0x08000130   0x08000130   0x00000000   Code   RO         5115  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
+    0x08000130   0x08000130   0x00000004   Code   RO         5393    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
+    0x08000134   0x08000134   0x00000004   Code   RO         5396    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
+    0x08000138   0x08000138   0x00000000   Code   RO         5398    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
+    0x08000138   0x08000138   0x00000000   Code   RO         5400    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
+    0x08000138   0x08000138   0x00000008   Code   RO         5401    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
+    0x08000140   0x08000140   0x00000000   Code   RO         5403    .ARM.Collect$$$$0000000D  mc_w.l(entry10a.o)
+    0x08000140   0x08000140   0x00000000   Code   RO         5405    .ARM.Collect$$$$0000000F  mc_w.l(entry11a.o)
+    0x08000140   0x08000140   0x00000004   Code   RO         5394    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
     0x08000144   0x08000144   0x00000096   Code   RO         4898    .emb_text           port.o
     0x080001da   0x080001da   0x00000002   PAD
     0x080001dc   0x080001dc   0x00000024   Code   RO          316    .text               startup_stm32f10x_hd.o
-    0x08000200   0x08000200   0x00000024   Code   RO         5112    .text               mc_w.l(memcpya.o)
-    0x08000224   0x08000224   0x00000024   Code   RO         5116    .text               mc_w.l(memseta.o)
-    0x08000248   0x08000248   0x0000002c   Code   RO         5402    .text               mc_w.l(uidiv.o)
-    0x08000274   0x08000274   0x00000062   Code   RO         5404    .text               mc_w.l(uldiv.o)
-    0x080002d6   0x080002d6   0x00000000   Code   RO         5406    .text               mc_w.l(iusefp.o)
-    0x080002d6   0x080002d6   0x0000014e   Code   RO         5409    .text               mf_w.l(dadd.o)
-    0x08000424   0x08000424   0x000000e4   Code   RO         5411    .text               mf_w.l(dmul.o)
-    0x08000508   0x08000508   0x000000de   Code   RO         5413    .text               mf_w.l(ddiv.o)
-    0x080005e6   0x080005e6   0x00000030   Code   RO         5415    .text               mf_w.l(dfixul.o)
+    0x08000200   0x08000200   0x00000024   Code   RO         5118    .text               mc_w.l(memcpya.o)
+    0x08000224   0x08000224   0x00000024   Code   RO         5122    .text               mc_w.l(memseta.o)
+    0x08000248   0x08000248   0x0000002c   Code   RO         5408    .text               mc_w.l(uidiv.o)
+    0x08000274   0x08000274   0x00000062   Code   RO         5410    .text               mc_w.l(uldiv.o)
+    0x080002d6   0x080002d6   0x00000000   Code   RO         5412    .text               mc_w.l(iusefp.o)
+    0x080002d6   0x080002d6   0x0000014e   Code   RO         5415    .text               mf_w.l(dadd.o)
+    0x08000424   0x08000424   0x000000e4   Code   RO         5417    .text               mf_w.l(dmul.o)
+    0x08000508   0x08000508   0x000000de   Code   RO         5419    .text               mf_w.l(ddiv.o)
+    0x080005e6   0x080005e6   0x00000030   Code   RO         5421    .text               mf_w.l(dfixul.o)
     0x08000616   0x08000616   0x00000002   PAD
-    0x08000618   0x08000618   0x00000030   Code   RO         5417    .text               mf_w.l(cdrcmple.o)
-    0x08000648   0x08000648   0x00000024   Code   RO         5419    .text               mc_w.l(init.o)
-    0x0800066c   0x0800066c   0x0000001e   Code   RO         5421    .text               mc_w.l(llshl.o)
-    0x0800068a   0x0800068a   0x00000020   Code   RO         5423    .text               mc_w.l(llushr.o)
-    0x080006aa   0x080006aa   0x00000024   Code   RO         5425    .text               mc_w.l(llsshr.o)
-    0x080006ce   0x080006ce   0x000000ba   Code   RO         5427    .text               mf_w.l(depilogue.o)
+    0x08000618   0x08000618   0x00000030   Code   RO         5423    .text               mf_w.l(cdrcmple.o)
+    0x08000648   0x08000648   0x00000024   Code   RO         5425    .text               mc_w.l(init.o)
+    0x0800066c   0x0800066c   0x0000001e   Code   RO         5427    .text               mc_w.l(llshl.o)
+    0x0800068a   0x0800068a   0x00000020   Code   RO         5429    .text               mc_w.l(llushr.o)
+    0x080006aa   0x080006aa   0x00000024   Code   RO         5431    .text               mc_w.l(llsshr.o)
+    0x080006ce   0x080006ce   0x000000ba   Code   RO         5433    .text               mf_w.l(depilogue.o)
     0x08000788   0x08000788   0x00000006   Code   RO          636    i.ADC_ClearFlag     stm32f10x_adc.o
     0x0800078e   0x0800078e   0x00000018   Code   RO          638    i.ADC_Cmd           stm32f10x_adc.o
     0x080007a6   0x080007a6   0x0000000e   Code   RO          646    i.ADC_GetCalibrationStatus  stm32f10x_adc.o
@@ -2629,8 +2632,8 @@ Memory Map of the image
     0x08001174   0x08001174   0x00000050   Code   RO         4985    i.OLED_Refresh_Gram  oled.o
     0x080011c4   0x080011c4   0x000000c8   Code   RO         4986    i.OLED_ShowChar     oled.o
     0x0800128c   0x0800128c   0x00000088   Code   RO         4987    i.OLED_ShowNum      oled.o
-    0x08001314   0x08001314   0x00000054   Code   RO         4988    i.OLED_ShowString   oled.o
-    0x08001368   0x08001368   0x00000042   Code   RO         4989    i.OLED_WR_Byte      oled.o
+    0x08001314   0x08001314   0x00000054   Code   RO         4989    i.OLED_ShowString   oled.o
+    0x08001368   0x08001368   0x00000042   Code   RO         4990    i.OLED_WR_Byte      oled.o
     0x080013aa   0x080013aa   0x00000002   PAD
     0x080013ac   0x080013ac   0x0000001c   Code   RO         2162    i.RCC_AHBPeriphClockCmd  stm32f10x_rcc.o
     0x080013c8   0x080013c8   0x0000001c   Code   RO         2165    i.RCC_APB2PeriphClockCmd  stm32f10x_rcc.o
@@ -2676,15 +2679,15 @@ Memory Map of the image
     0x08001d5c   0x08001d5c   0x000000c8   Code   RO         3651    i.Usart1_Init       usart1.o
     0x08001e24   0x08001e24   0x0000007c   Code   RO         3652    i.Usart1_Receive_DMA_Init  usart1.o
     0x08001ea0   0x08001ea0   0x00000064   Code   RO         3654    i.Usart1_Send_DMA_Init  usart1.o
-    0x08001f04   0x08001f04   0x00000020   Code   RO         5353    i.__0printf         mc_w.l(printfa.o)
-    0x08001f24   0x08001f24   0x0000000e   Code   RO         5431    i.__scatterload_copy  mc_w.l(handlers.o)
-    0x08001f32   0x08001f32   0x00000002   Code   RO         5432    i.__scatterload_null  mc_w.l(handlers.o)
-    0x08001f34   0x08001f34   0x0000000e   Code   RO         5433    i.__scatterload_zeroinit  mc_w.l(handlers.o)
+    0x08001f04   0x08001f04   0x00000020   Code   RO         5359    i.__0printf         mc_w.l(printfa.o)
+    0x08001f24   0x08001f24   0x0000000e   Code   RO         5437    i.__scatterload_copy  mc_w.l(handlers.o)
+    0x08001f32   0x08001f32   0x00000002   Code   RO         5438    i.__scatterload_null  mc_w.l(handlers.o)
+    0x08001f34   0x08001f34   0x0000000e   Code   RO         5439    i.__scatterload_zeroinit  mc_w.l(handlers.o)
     0x08001f42   0x08001f42   0x00000002   PAD
-    0x08001f44   0x08001f44   0x00000184   Code   RO         5360    i._fp_digits        mc_w.l(printfa.o)
-    0x080020c8   0x080020c8   0x000006dc   Code   RO         5361    i._printf_core      mc_w.l(printfa.o)
-    0x080027a4   0x080027a4   0x00000024   Code   RO         5362    i._printf_post_padding  mc_w.l(printfa.o)
-    0x080027c8   0x080027c8   0x0000002e   Code   RO         5363    i._printf_pre_padding  mc_w.l(printfa.o)
+    0x08001f44   0x08001f44   0x00000184   Code   RO         5366    i._fp_digits        mc_w.l(printfa.o)
+    0x080020c8   0x080020c8   0x000006dc   Code   RO         5367    i._printf_core      mc_w.l(printfa.o)
+    0x080027a4   0x080027a4   0x00000024   Code   RO         5368    i._printf_post_padding  mc_w.l(printfa.o)
+    0x080027c8   0x080027c8   0x0000002e   Code   RO         5369    i._printf_pre_padding  mc_w.l(printfa.o)
     0x080027f6   0x080027f6   0x00000002   PAD
     0x080027f8   0x080027f8   0x0000003c   Code   RO          498    i.adc_get_value     key.o
     0x08002834   0x08002834   0x00000080   Code   RO          499    i.adc_init          key.o
@@ -2805,8 +2808,8 @@ Memory Map of the image
     0x0800444c   0x0800444c   0x000000c8   Code   RO         4404    i.xTaskResumeAll    tasks.o
     0x08004514   0x08004514   0x0000004c   Code   RO         4719    i.xTimerCreateTimerTask  timers.o
     0x08004560   0x08004560   0x0000006c   Code   RO         4720    i.xTimerGenericCommand  timers.o
-    0x080045cc   0x080045cc   0x000017c0   Data   RO         4991    .constdata          oled.o
-    0x08005d8c   0x08005d8c   0x00000020   Data   RO         5429    Region$$Table       anon$$obj.o
+    0x080045cc   0x080045cc   0x000017c0   Data   RO         4992    .constdata          oled.o
+    0x08005d8c   0x08005d8c   0x00000020   Data   RO         5435    Region$$Table       anon$$obj.o
 
 
     Execution Region RW_IRAM1 (Exec base: 0x20000000, Load base: 0x08005dac, Size: 0x00004f98, Max: 0x00010000, ABSOLUTE)
@@ -2827,7 +2830,7 @@ Memory Map of the image
     0x20000080   0x08005e2c   0x00000014   Data   RW         4728    .data               timers.o
     0x20000094   0x08005e40   0x00000018   Data   RW         4857    .data               heap_4.o
     0x200000ac   0x08005e58   0x0000000c   Data   RW         4908    .data               port.o
-    0x200000b8   0x08005e64   0x00000004   Data   RW         5401    .data               mc_w.l(stdout.o)
+    0x200000b8   0x08005e64   0x00000004   Data   RW         5407    .data               mc_w.l(stdout.o)
     0x200000bc        -       0x00000054   Zero   RW          384    .bss                oled_menu.o
     0x20000110        -       0x0000054c   Zero   RW         3656    .bss                usart1.o
     0x2000065c        -       0x00000010   Zero   RW         3744    .bss                usart2.o
@@ -2835,7 +2838,7 @@ Memory Map of the image
     0x200006ac        -       0x000004c4   Zero   RW         4406    .bss                tasks.o
     0x20000b70        -       0x00000028   Zero   RW         4727    .bss                timers.o
     0x20000b98        -       0x00003c00   Zero   RW         4856    .bss                heap_4.o
-    0x20004798        -       0x00000400   Zero   RW         4990    .bss                oled.o
+    0x20004798        -       0x00000400   Zero   RW         4991    .bss                oled.o
     0x20004b98        -       0x00000400   Zero   RW          313    STACK               startup_stm32f10x_hd.o
 
 
@@ -2854,7 +2857,7 @@ Image component sizes
        138          0          0          0          0       3154   list.o
        260         48          0          4          0     278259   main.o
        120         14          0          0          0       1703   misc.o
-      1286         58       6080          0       1024       9742   oled.o
+      1286         58       6080          0       1024       9750   oled.o
       1286        362          0          2         84      11874   oled_menu.o
        662         70          0         12          0      10225   port.o
        208         30          0          1          0       1693   pwm.o
@@ -2875,7 +2878,7 @@ Image component sizes
        128         14          0          4         16       9108   usart2.o
 
     ----------------------------------------------------------------------
-     13836       1354       6416        184      20188     471679   Object Totals
+     13836       1354       6416        184      20188     471687   Object Totals
          0          0         32          0          0          0   (incl. Generated)
         48          0          0          5          0          0   (incl. Padding)
 
@@ -2931,8 +2934,8 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-     17564       1460       6416        188      20188     462483   Grand Totals
-     17564       1460       6416        188      20188     462483   ELF Image Totals
+     17564       1460       6416        188      20188     462491   Grand Totals
+     17564       1460       6416        188      20188     462491   ELF Image Totals
      17564       1460       6416        188          0          0   ROM Totals
 
 ==============================================================================

@@ -463,6 +463,39 @@ void OLED_ShowNum(uint8_t x, uint8_t y, int32_t num, uint8_t len, uint8_t size)
     OLED_ShowString(x, y, buf, size);
 }
 
+/**************************************************************************
+函 数 名:OLED_ShowPicture
+功能描述:显示自定义图片
+输入参数:
+@x0,y0:起点坐标 
+@x1,y1:终点坐标
+@p:图片点阵数据
+输出参数:None
+返 回 值:None
+其他说明:
+**************************************************************************/
+void OLED_ShowPicture(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t *p)
+{
+    uint8_t x, y;
+    uint8_t byte_width = (x1 - x0 + 1 + 7) / 8;  // 计算每行需要的字节数
+    uint32_t index = 0;
+
+    for(y = y0; y <= y1; y++){
+        for(x = x0; x <= x1; x++){
+            uint8_t byte_pos = (x - x0) / 8;
+            uint8_t bit_pos = (x - x0) % 8;
+            
+            if(p[index + byte_pos] & (0x80 >> bit_pos)){
+                OLED_DrawPoint(x, y, 1);  // 点亮像素
+            }else{
+                OLED_DrawPoint(x, y, 0);  // 熄灭像素
+            }
+        }
+        index += byte_width;
+    }
+    OLED_Refresh_Gram();
+}
+
 
 /**************************************************************************
 函 数 名:OLED_Init
