@@ -54,8 +54,6 @@ static void MainTaskFunc( void *pvParameters )
             // 数据已经在USART1_Read内部被解析和处理
             vPortFree(tmp);
         }
-
-        /* LED1呼吸效果已迁移至独立任务BreathTaskFunc，此处仅保留占位 */
         
         // 更新菜单显示
         menu_update();
@@ -122,6 +120,15 @@ static void KeyTaskFunc( void *pvParameters )
     }
 }
 
+/**************************************************************************
+函 数 名:TimeKeeperTaskFunc
+功能描述:系统运行时间守护任务，每秒递增全局运行秒数计数器。
+输入参数:
+@pvParameters:系统传参，未使用
+输出参数:None
+返 回 值:None
+其他说明:使用vTaskDelayUntil确保周期稳定为1秒，保证g_uptime_seconds精度。
+**************************************************************************/
 static void TimeKeeperTaskFunc( void *pvParameters )
 {
     TickType_t last = xTaskGetTickCount();
@@ -133,9 +140,18 @@ static void TimeKeeperTaskFunc( void *pvParameters )
     }
 }
 
+/**************************************************************************
+函 数 名:LedTaskFunc
+功能描述:LED控制任务，循环接收队列指令并执行对应LED模式。
+输入参数:
+@pvParameters:系统传参，未使用
+输出参数:None
+返 回 值:None
+其他说明:初始化默认呼吸模式，周期1ms调用Led_Update_1ms以实现平滑效果。
+**************************************************************************/
 static void LedTaskFunc( void *pvParameters )
 {
-    Led_Mode_Breath(50, 2000);
+    Led_Mode_Breath(50, 4000);
     TickType_t last = xTaskGetTickCount();
     for(;;)
     {
@@ -151,9 +167,20 @@ static void LedTaskFunc( void *pvParameters )
         }
         vTaskDelayUntil(&last, pdMS_TO_TICKS(1));
         Led_Update_1ms();
+        printf("1");  //  
     }
 }
 
+/**************************************************************************
+函 数 名:LedRequestBreath
+功能描述:向LED任务发送呼吸模式请求。
+输入参数:
+@brightness:呼吸亮度百分比(0~100)
+@breath_time_ms:单次呼吸周期时长，单位毫秒
+输出参数:None
+返 回 值:None
+其他说明:非阻塞发送，队列满时直接返回，不等待。
+**************************************************************************/
 void LedRequestBreath(uint8_t brightness, uint16_t breath_time_ms)
 {
     LedCommand c;

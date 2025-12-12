@@ -21,13 +21,14 @@ static MenuExitFunc menu_exit_funcs[MENU_COUNT];
 // ---------------------------- 主界面 ----------------------------
 static void main_menu_init(void) {
     OLED_Clear();
-    OLED_ShowString(0, 0, "Main Menu", 16);
+    OLED_ShowString(0, 0, "Main", 16);
     LedRequestBreath(50, 2000);
 }
 
 static void main_menu_loop(void) {
     static uint32_t last = 0;
     uint32_t sec = g_uptime_seconds;
+    // 更新时间显示
     if (sec != last) {
         last = sec;
         uint32_t h = sec / 3600U;
@@ -35,7 +36,7 @@ static void main_menu_loop(void) {
         uint32_t s = sec % 60U;
         char buf[12];
         sprintf(buf, "%02lu:%02lu:%02lu", (unsigned long)(h % 100U), (unsigned long)m, (unsigned long)s);
-        OLED_ShowString(80, 0, buf, 16);
+        OLED_ShowString(60, 0, buf, 16);
     }
 }
 
@@ -109,7 +110,8 @@ static void gpio_output_menu_init(void) {
     OLED_ShowString(0, 0, "GPIO Output", 16);
     OLED_ShowString(0, 16, "LED:", 16);
     gpio_output_state = 0;
-    Led_Off();
+    // 直接控制LED关闭，不重新初始化GPIO
+    GPIO_ResetBits(GPIOB, GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
 }
 
 static void gpio_output_menu_loop(void) {
@@ -117,7 +119,8 @@ static void gpio_output_menu_loop(void) {
 }
 
 static void gpio_output_menu_exit(void) {
-    Led_Off(); // 关闭LED
+    // 直接控制LED关闭，不重新初始化GPIO
+    GPIO_ResetBits(GPIOB, GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
 }
 
 // ---------------------------- 串口接收界面 ----------------------------
@@ -226,7 +229,7 @@ void menu_handle_key(KEY_ID key) {
             // 主界面按键处理
             switch (key) {
                 case KEY_K1:
-                    menu_switch(MENU_PWM);
+                    menu_switch(MENU_PWM); // 主菜单 -> PWM菜单
                     break;
                 case KEY_K2:
                     menu_switch(MENU_ADC);
@@ -252,7 +255,7 @@ void menu_handle_key(KEY_ID key) {
             // PWM界面按键处理
             switch (key) {
                 case KEY_K1:
-                    menu_switch(MENU_MAIN);
+                    menu_switch(MENU_ADC); // PWM菜单 -> ADC菜单
                     break;
                 case KEY_K5:
                     {   
@@ -278,14 +281,14 @@ void menu_handle_key(KEY_ID key) {
         case MENU_ADC:
             // ADC界面按键处理
             if (key == KEY_K1) {
-                menu_switch(MENU_MAIN);
+                menu_switch(MENU_GPIO_INPUT); // ADC菜单 -> GPIO输入菜单
             }
             break;
             
         case MENU_GPIO_INPUT:
             // GPIO输入界面按键处理
             if (key == KEY_K1) {
-                menu_switch(MENU_MAIN);
+                menu_switch(MENU_GPIO_OUTPUT); // GPIO输入菜单 -> GPIO输出菜单
             }
             break;
             
@@ -293,7 +296,7 @@ void menu_handle_key(KEY_ID key) {
             // GPIO输出界面按键处理
             switch (key) {
                 case KEY_K1:
-                    menu_switch(MENU_MAIN);
+                    menu_switch(MENU_UART_RECEIVE); // GPIO输出菜单 -> 串口接收菜单
                     break;
                 case KEY_K2:
                     Led1_On();
@@ -311,14 +314,14 @@ void menu_handle_key(KEY_ID key) {
         case MENU_UART_RECEIVE:
             // 串口接收界面按键处理
             if (key == KEY_K1) {
-                menu_switch(MENU_MAIN);
+                menu_switch(MENU_FREE_DEBUG); // 串口接收菜单 -> 自由调试菜单
             }
             break;
             
         case MENU_FREE_DEBUG:
             // 自由调试界面按键处理
             if (key == KEY_K1) {
-                menu_switch(MENU_MAIN);
+                menu_switch(MENU_MAIN); // 自由调试菜单 -> 主菜单
             }
             break;
             

@@ -24,6 +24,13 @@ void Led_Init(void)
     GPIO_Init(GPIOC, &GPIO_InitStructure);              //初始化GPIO
     GPIO_SetBits(GPIOC, GPIO_Pin_13);                    //设置IO口输出高
     
+    /* 初始化PB6用于示波器观察波形 */
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_6;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;   //设置IO口推挽输出
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;   //设置IO口速度
+    GPIO_Init(GPIOB, &GPIO_InitStructure);              //初始化GPIO
+    GPIO_ResetBits(GPIOB, GPIO_Pin_6);                  //初始化为低电平
+    
     /* 配置PB15为推挽输出并置高 - 点亮LED */
     GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_15;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;   //设置IO口推挽输出
@@ -232,21 +239,21 @@ void Led_Off(void)
 }
 
 typedef enum { LED_MODE_ON, LED_MODE_OFF, LED_MODE_LONG_OFF, LED_MODE_BREATH, LED_MODE_BLINK } led_mode_t;
-static led_mode_t g_mode = LED_MODE_BREATH;
-static uint8_t g_brightness = 50;
-static uint8_t g_brightness_cur = 0;
-static uint16_t g_breath_time_ms = 2000;
-static uint16_t g_blink_count = 0;
-static uint16_t g_single_blink_time_ms = 300;
-static uint32_t g_sustain_blink_time_ms = 0;
-static uint32_t g_acc_ms = 0;
-static uint16_t g_blink_done = 0;
-static uint8_t g_breath_up = 1;
-static uint8_t g_target_led = 1;
-static uint8_t g_pwm_cycle_ms = 4;
-static uint8_t g_pwm_phase_ms = 0;
-static uint8_t g_pwm_on_ms = 0;
-static uint16_t g_pwm_err_acc = 0; // 1/100 ms accumulator
+static led_mode_t g_mode = LED_MODE_BREATH;               /**< 当前LED工作模式 */
+static uint8_t  g_brightness = 50;                          /**< 目标亮度（0~100%） */
+static uint8_t  g_brightness_cur = 0;                       /**< 当前实际亮度（0~100%） */
+static uint16_t g_breath_time_ms = 2000;                    /**< 呼吸灯单次周期时长，单位ms */
+static uint16_t g_blink_count = 0;                          /**< 闪烁次数（0表示按时间或无限） */
+static uint16_t g_single_blink_time_ms = 300;               /**< 单次闪烁开/关时长，单位ms */
+static uint32_t g_sustain_blink_time_ms = 0;                /**< 闪烁总持续时间，单位ms（0表示无限） */
+static uint32_t g_acc_ms = 0;                               /**< 当前模式已运行累计时间，单位ms */
+static uint16_t g_blink_done = 0;                         /**< 已完成的闪烁次数计数 */
+static uint8_t  g_breath_up = 1;                            /**< 呼吸方向标志：1上升，0下降 */
+static uint8_t  g_target_led = 1;                           /**< 目标LED编号（1~6） */
+static uint8_t  g_pwm_cycle_ms = 1;                         /**< PWM周期时长，单位ms */
+static uint8_t  g_pwm_phase_ms = 0;                       /**< 当前PWM周期内相位，单位ms */
+static uint8_t  g_pwm_on_ms = 0;                            /**< 当前周期内PWM高电平持续时间，单位ms */
+static uint16_t g_pwm_err_acc = 0;                          /**< PWM误差累积器，单位1/100 ms */
 
 static void led_on_target(void);
 static void led_off_target(void);
@@ -310,8 +317,8 @@ void Led_Mode_LongOff(uint32_t duration_ms)
 void Led_Mode_Breath(uint8_t brightness, uint16_t breath_time_ms)
 {
     g_mode = LED_MODE_BREATH;
-    g_brightness = brightness ? brightness : 1;
-    g_breath_time_ms = breath_time_ms ? breath_time_ms : 1000;
+    g_brightness = brightness ? brightness : 1;                     // 确保亮度非0
+    g_breath_time_ms = breath_time_ms ? breath_time_ms : 1000;      // 无值则为1000
     g_acc_ms = 0;
     g_breath_up = 1;
     g_brightness_cur = 0;
@@ -351,88 +358,6 @@ void Led_Mode_Blink(uint8_t brightness, uint16_t single_blink_time_ms, uint16_t 
 **************************************************************************/
 void Led_Update_10ms(void)
 {
-    switch(g_mode)
-    {
-        case LED_MODE_ON:
-            g_brightness_cur = g_brightness;
-            break;
-        case LED_MODE_OFF:
-            g_brightness_cur = 0;
-            break;
-        case LED_MODE_LONG_OFF:
-            g_acc_ms += 10;
-            if (g_sustain_blink_time_ms && g_acc_ms >= g_sustain_blink_time_ms) {
-                Led_Mode_Breath(g_brightness, g_breath_time_ms);
-            }
-            g_brightness_cur = 0;
-            break;
-        case LED_MODE_BREATH:
-        {
-            static uint32_t phase_ms = 0;
-            phase_ms += 10;
-            if (phase_ms >= g_breath_time_ms) phase_ms = 0;
-            uint16_t p = (uint32_t)phase_ms * 255 / (g_breath_time_ms ? g_breath_time_ms : 1);
-            uint16_t tri = (p < 128) ? (p * 2) : ((255 - p) * 2);
-            uint32_t gamma2 = (uint32_t)tri * (uint32_t)tri; // 0..(255^2)
-            gamma2 = (gamma2 + 255) / 255; // normalize back to 0..255
-            g_brightness_cur = (uint16_t)((gamma2 * g_brightness + 255) / 255);
-            break;
-        }
-        case LED_MODE_BLINK:
-        {
-            static uint8_t on_state = 0;
-            g_acc_ms += 10;
-            uint16_t t = g_single_blink_time_ms ? g_single_blink_time_ms : 200;
-            if (g_blink_count) {
-                if (g_acc_ms >= t) {
-                    g_acc_ms = 0;
-                    on_state = !on_state;
-                    if (on_state) {
-                        g_brightness_cur = g_brightness;
-                    } else {
-                        g_brightness_cur = 0;
-                        g_blink_done++;
-                        if (g_blink_done >= g_blink_count) {
-                            g_blink_done = 0;
-                            Led_Mode_Breath(g_brightness, g_breath_time_ms);
-                        }
-                    }
-                }
-            } else {
-                uint32_t limit = g_sustain_blink_time_ms;
-                if (g_acc_ms >= t) {
-                    g_acc_ms = 0;
-                    on_state = !on_state;
-                    if (on_state) {
-                        g_brightness_cur = g_brightness;
-                    } else {
-                        g_brightness_cur = 0;
-                    }
-                }
-                static uint32_t run_ms = 0;
-                run_ms += 10;
-                if (limit && run_ms >= limit) {
-                    run_ms = 0;
-                    Led_Mode_Breath(g_brightness, g_breath_time_ms);
-                }
-            }
-            break;
-        }
-    }
-
-    if (++g_pwm_phase_ms >= g_pwm_cycle_ms) {
-        g_pwm_phase_ms = 0;
-        uint16_t desired = (uint16_t)g_brightness_cur * g_pwm_cycle_ms; // in 1/100 ms
-        desired += g_pwm_err_acc;
-        g_pwm_on_ms = desired / 100;
-        if (g_pwm_on_ms > g_pwm_cycle_ms) g_pwm_on_ms = g_pwm_cycle_ms;
-        g_pwm_err_acc = desired % 100;
-    }
-    if (g_pwm_phase_ms < g_pwm_on_ms) {
-        led_on_target();
-    } else {
-        led_off_target();
-    }
 }
 
 void Led_Update_1ms(void)
@@ -456,11 +381,43 @@ void Led_Update_1ms(void)
         {
             static uint32_t phase_ms = 0;
             if (++phase_ms >= g_breath_time_ms) phase_ms = 0;
-            uint16_t p = (uint32_t)phase_ms * 255 / (g_breath_time_ms ? g_breath_time_ms : 1);
-            uint16_t tri = (p < 128) ? (p * 2) : ((255 - p) * 2);
-            uint32_t gamma2 = (uint32_t)tri * (uint32_t)tri;
+            // 使用正弦波生成更平滑的呼吸曲线，避免三角形波在边界的突变
+            // 将phase_ms映射到0-65535的角度值
+            uint16_t angle = (uint32_t)phase_ms * 65535 / (g_breath_time_ms ? g_breath_time_ms : 1);
+            // 使用正弦函数计算亮度值，范围从0到255
+            int16_t sin_val = 0;
+            // 使用查表法计算正弦值，避免浮点数运算
+            if (angle < 16384) {
+                // 0°-90°: sin(angle) = angle * 255 / 16384
+                sin_val = (int16_t)((uint32_t)angle * 255 / 16384);
+            } else if (angle < 32768) {
+                // 90°-180°: sin(angle) = 255 - (angle-16384) * 255 / 16384
+                sin_val = 255 - (int16_t)((uint32_t)(angle - 16384) * 255 / 16384);
+            } else if (angle < 49152) {
+                // 180°-270°: sin(angle) = 0 - (angle-32768) * 255 / 16384
+                sin_val = 0 - (int16_t)((uint32_t)(angle - 32768) * 255 / 16384);
+            } else {
+                // 270°-360°: sin(angle) = (angle-49152) * 255 / 16384 - 255
+                sin_val = (int16_t)((uint32_t)(angle - 49152) * 255 / 16384) - 255;
+            }
+            // 取绝对值并转换为0-255范围
+            uint16_t sin_abs = (sin_val < 0) ? (-sin_val) : sin_val;
+            // 应用gamma校正，使亮度变化更符合人眼感知
+            uint32_t gamma2 = (uint32_t)sin_abs * (uint32_t)sin_abs;
             gamma2 = (gamma2 + 255) / 255;
+            // 计算最终亮度
             g_brightness_cur = (uint16_t)((gamma2 * g_brightness + 255) / 255);
+            
+            // 添加最小亮度阈值，跳过1%的极低亮度区域，避免闪烁
+            // 计算最小亮度阈值（总亮度的5%）
+            uint16_t min_brightness = (uint16_t)(g_brightness * 0.05);
+            if (min_brightness < 1) min_brightness = 1; // 确保至少为1
+            
+            // 当亮度低于最小阈值时，直接设置为0，避免极低亮度闪烁
+            if (g_brightness_cur > 0 && g_brightness_cur < min_brightness) {
+                g_brightness_cur = 0;
+            }
+            //printf("sin_abs=%d\r\n",sin_abs);  //  
             break;
         }
         case LED_MODE_BLINK:
@@ -505,6 +462,7 @@ void Led_Update_1ms(void)
         }
     }
 
+    //  亮度实现
     if (++g_pwm_phase_ms >= g_pwm_cycle_ms) {
         g_pwm_phase_ms = 0;
         uint16_t desired = (uint16_t)g_brightness_cur * g_pwm_cycle_ms; // in 1/100 ms
@@ -513,14 +471,19 @@ void Led_Update_1ms(void)
         if (g_pwm_on_ms > g_pwm_cycle_ms) g_pwm_on_ms = g_pwm_cycle_ms;
         g_pwm_err_acc = desired % 100;
     }
+
     if (g_pwm_phase_ms < g_pwm_on_ms) {
         led_on_target();
     } else {
         led_off_target();
     }
 }
+
 static void led_on_target(void)
 {
+    /* 控制PB6输出高电平 */
+    //GPIO_SetBits(GPIOB, GPIO_Pin_6);
+    
     switch(g_target_led){
         case 1: Led1_On(); break;
         case 2: Led2_On(); break;

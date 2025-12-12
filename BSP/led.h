@@ -30,4 +30,7 @@ void Led_Update_10ms(void);
 void Led_Update_1ms(void);
 void Led_Select(uint8_t led_id);
 
+// 用于测试Led_Update_1ms执行频率的计数器
+extern volatile uint32_t g_led_update_counter;
+
 #endif
