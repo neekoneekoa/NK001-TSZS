@@ -25,7 +25,7 @@ static INTERFACE_TYPE current_interface = INTERFACE_PWM;
 void test_init(void){
     // 根据初始界面设置PWM状态
     if (current_interface != INTERFACE_PWM) {
-        pwm_set_duty(0); // 初始界面不是PWM，关闭PWM
+        pwm_set_duty(1, 0); // 初始界面不是PWM，关闭PWM通道1
     }
 }
 
@@ -33,7 +33,7 @@ void test_init(void){
 static int8_t led_state = 0;
 
 // 使用绝对时间戳
-static uint32_t next_update_tick = 0;
+// static uint32_t next_update_tick = 0; // 预留变量，暂未使用
 
 typedef enum {
     LED_OFF_ALL,
@@ -119,7 +119,7 @@ uint8_t oled_test(void){
             // PWM界面
             OLED_ShowString(0, 0, "PWM", 16);  // 界面名称
             OLED_ShowString(0, 16, "PWM Duty:", 16);
-            OLED_ShowNum(80, 16, pwm_get_duty(), 3, 16);
+            OLED_ShowNum(80, 16, pwm_get_duty(1), 3, 16);
             OLED_ShowString(110, 16, "%", 16);
             break;
         case INTERFACE_LED:
@@ -133,7 +133,6 @@ uint8_t oled_test(void){
 }
 
 uint8_t test_KEY(void){
-        uint16_t pb0_mv, pb1_mv;
         uint8_t current_duty;
         // 按键按下处理
         if (xQueueReceive(xKeyQueue, &key1, 0) == pdTRUE)
@@ -143,7 +142,6 @@ uint8_t test_KEY(void){
             // 处理界面切换
             if (key1 == KEY_K1) {
                 // 切换界面
-                INTERFACE_TYPE previous_interface = current_interface;
                 current_interface = (current_interface + 1) % 2;
                 // 清屏
                 OLED_Clear();
@@ -151,31 +149,31 @@ uint8_t test_KEY(void){
                 // 根据界面切换控制PWM
                 if (current_interface == INTERFACE_PWM) {
                     // 进入PWM界面，开启PWM
-                    pwm_set_duty(pwm_get_duty()); // 设置为当前占空比
+                    pwm_set_duty(1, pwm_get_duty(1)); // 设置为当前占空比（通道1）
                 } else {
                     // 离开PWM界面，关闭PWM
-                    pwm_set_duty(0);
+                    pwm_set_duty(1, 0); // 关闭PWM通道1
                 }
             } else {
                 // 根据当前界面处理其他按键
                 switch(current_interface) {
                     case INTERFACE_PWM:
                         // PWM界面：调节占空比
-                        current_duty = pwm_get_duty();
+                        current_duty = pwm_get_duty(1); // 获取通道1占空比 (PA11)
                         switch(key1)
                         {
-                            case KEY_K5: // 增加占空比
+                            case KEY_K3: // K3：增加占空比
                                 if (current_duty < 100)
                                 {
                                     current_duty += 5;
-                                    pwm_set_duty(current_duty);
+                                    pwm_set_duty(1, current_duty); // 设置通道1占空比
                                 }
                                 break;
-                            case KEY_K6: // 减少占空比
+                            case KEY_K4: // K4：减少占空比
                                 if (current_duty > 0)
                                 {
                                     current_duty -= 5;
-                                    pwm_set_duty(current_duty);
+                                    pwm_set_duty(1, current_duty); // 设置通道1占空比
                                 }
                                 break;
                             default:
@@ -189,7 +187,7 @@ uint8_t test_KEY(void){
                             case KEY_K2: // 点亮LED
                                 Led1_On();
                                 break;
-                            case KEY_K3: // 熄灭LED
+                            case KEY_K5: // 熄灭LED (原K3功能，现在改为K5)
                                 Led_Off();
                                 break;
                             default:

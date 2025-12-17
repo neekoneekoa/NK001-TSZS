@@ -45,41 +45,79 @@ static void main_menu_exit(void) {
 }
 
 // ---------------------------- PWM界面 ----------------------------
+static uint8_t current_pwm_channel = 1; // 当前选中的PWM通道
+
 static void pwm_menu_init(void) {
     OLED_Clear();
-    OLED_ShowString(0, 0, "PWM Menu", 16);
-    OLED_ShowString(0, 16, "Duty:", 16);
-    pwm_set_duty(pwm_get_duty()); // 开启PWM
+    OLED_ShowString(0, 0, "PWM", 16);
+    OLED_ShowString(0, 16, "PA11:", 16);
+    OLED_ShowString(0, 32, "PA6:", 16);
+    OLED_ShowString(96, 16, ">", 16); // 显示当前选中通道
+    // 开启两个PWM通道
+    pwm_set_duty(1, pwm_get_duty(1));
+    pwm_set_duty(2, pwm_get_duty(2));
 }
 
 static void pwm_menu_loop(void) {
-    OLED_ShowNum(48, 16, pwm_get_duty(), 3, 16);
+    // 显示两个通道的占空比
+    OLED_ShowNum(48, 16, pwm_get_duty(1), 3, 16);
     OLED_ShowString(78, 16, "%", 16);
+    OLED_ShowNum(48, 32, pwm_get_duty(2), 3, 16);
+    OLED_ShowString(78, 32, "%", 16);
 }
 
 static void pwm_menu_exit(void) {
-    pwm_set_duty(0); // 关闭PWM
+    // 关闭两个PWM通道
+    pwm_set_duty(1, 0);
+    pwm_set_duty(2, 0);
 }
 
 // ---------------------------- ADC界面 ----------------------------
+// ADC显示模式枚举
+typedef enum {
+    ADC_DISPLAY_RAW,  // 显示原始ADC值
+    ADC_DISPLAY_VOLT  // 显示电压值
+} ADC_DISPLAY_MODE;
+
+static ADC_DISPLAY_MODE adc_display_mode = ADC_DISPLAY_RAW;  // 当前显示模式
+
 static void adc_menu_init(void) {
     OLED_Clear();
     OLED_ShowString(0, 0, "ADC Menu", 16);
-    OLED_ShowString(0, 16, "PB0:", 16);
-    OLED_ShowString(0, 32, "PB1:", 16);
+    OLED_ShowString(0, 16, "PA0:", 16);
+    OLED_ShowString(0, 32, "PA1:", 16);
+    
+    // 打开ADC电源
+    adc_power_on();
+    
+    // 默认显示原始ADC值
+    adc_display_mode = ADC_DISPLAY_RAW;
 }
 
 static void adc_menu_loop(void) {
-    uint16_t pb0_mv, pb1_mv;
-    key_get_adc_mv(&pb0_mv, &pb1_mv);
-    OLED_ShowNum(48, 16, pb0_mv, 4, 16);
-    OLED_ShowString(88, 16, "mV", 16);
-    OLED_ShowNum(48, 32, pb1_mv, 4, 16);
-    OLED_ShowString(88, 32, "mV", 16);
+    uint16_t pa0_raw, pa1_raw;
+    uint16_t pa0_mv, pa1_mv;
+    
+    if (adc_display_mode == ADC_DISPLAY_RAW) {
+        // 显示原始ADC值
+        adc_get_pa_raw(&pa0_raw, &pa1_raw);
+        OLED_ShowNum(48, 16, pa0_raw, 4, 16);
+        OLED_ShowString(88, 16, "ADC", 16);
+        OLED_ShowNum(48, 32, pa1_raw, 4, 16);
+        OLED_ShowString(88, 32, "ADC", 16);
+    } else {
+        // 显示电压值（mV）
+        adc_get_pa_mv(&pa0_mv, &pa1_mv);
+        OLED_ShowNum(48, 16, pa0_mv, 4, 16);
+        OLED_ShowString(88, 16, "mV", 16);
+        OLED_ShowNum(48, 32, pa1_mv, 4, 16);
+        OLED_ShowString(88, 32, "mV", 16);
+    }
 }
 
 static void adc_menu_exit(void) {
-    // ADC界面退出不需要特殊处理
+    // 关闭ADC电源以节省功耗
+    adc_power_off();
 }
 
 // ---------------------------- GPIO输入界面 ----------------------------
@@ -147,7 +185,7 @@ static void free_debug_menu_init(void) {
     OLED_ShowString(0, 0, "Free Debug", 16);
     OLED_ShowString(0, 16, "Mode:", 16);
     // 自由调试模式下保持PWM开启
-    pwm_set_duty(pwm_get_duty());
+    //pwm_set_duty(pwm_get_duty();
 }
 
 static void free_debug_menu_loop(void) {
@@ -257,19 +295,31 @@ void menu_handle_key(KEY_ID key) {
                 case KEY_K1:
                     menu_switch(MENU_ADC); // PWM菜单 -> ADC菜单
                     break;
+                case KEY_K2:
+                    // 切换到PA11通道
+                    current_pwm_channel = 1;
+                    OLED_ShowString(96, 16, ">", 16); // 显示选中标记
+                    OLED_ShowString(96, 32, " ", 16); // 清除另一个通道的选中标记
+                    break;
+                case KEY_K3:
+                    // 切换到PA6通道
+                    current_pwm_channel = 2;
+                    OLED_ShowString(96, 32, ">", 16); // 显示选中标记
+                    OLED_ShowString(96, 16, " ", 16); // 清除另一个通道的选中标记
+                    break;
                 case KEY_K5:
                     {   
-                        uint8_t duty = pwm_get_duty();
+                        uint8_t duty = pwm_get_duty(current_pwm_channel);
                         if (duty < 100) {
-                            pwm_set_duty(duty + 5);
+                            pwm_set_duty(current_pwm_channel, duty + 5);
                         }
                     }
                     break;
                 case KEY_K6:
                     {   
-                        uint8_t duty = pwm_get_duty();
+                        uint8_t duty = pwm_get_duty(current_pwm_channel);
                         if (duty > 0) {
-                            pwm_set_duty(duty - 5);
+                            pwm_set_duty(current_pwm_channel, duty - 5);
                         }
                     }
                     break;
@@ -280,8 +330,21 @@ void menu_handle_key(KEY_ID key) {
             
         case MENU_ADC:
             // ADC界面按键处理
-            if (key == KEY_K1) {
-                menu_switch(MENU_GPIO_INPUT); // ADC菜单 -> GPIO输入菜单
+            switch (key) {
+                case KEY_K1:
+                    menu_switch(MENU_GPIO_INPUT); // ADC菜单 -> GPIO输入菜单
+                    break;
+                case KEY_K2:
+                    // 切换显示模式
+                    adc_display_mode = (adc_display_mode == ADC_DISPLAY_RAW) ? ADC_DISPLAY_VOLT : ADC_DISPLAY_RAW;
+                    // 清屏并重新初始化显示
+                    OLED_Clear();
+                    OLED_ShowString(0, 0, "ADC Menu", 16);
+                    OLED_ShowString(0, 16, "PA0:", 16);
+                    OLED_ShowString(0, 32, "PA1:", 16);
+                    break;
+                default:
+                    break;
             }
             break;
             

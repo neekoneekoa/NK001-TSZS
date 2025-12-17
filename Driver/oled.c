@@ -403,19 +403,19 @@ void OLED_ShowString(uint8_t x, uint8_t y, const char *p, uint8_t size)
 {	
     while((*p <= '~') && (*p >= ' ')){//判断是不是非法字符!     
         if( x > (128 - (size/2))){
-			x = 0;
-			y += size;
-		}
-		
+		x = 0;
+		y += size;
+	}
+	
         if(y > (64 - size)){
-			y = x = 0;
-			OLED_Clear();
-		}
+		y = x = 0;
+		OLED_Clear();
+	}
         OLED_ShowChar(x, y, *p, size, 1);	 
         x += size/2;
         p++;
-    } 
-	OLED_Refresh_Gram();
+    }
+	OLED_Refresh_Gram();//更新显示
 }	
 
 /**************************************************************************
@@ -493,7 +493,7 @@ void OLED_ShowPicture(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint
         }
         index += byte_width;
     }
-    OLED_Refresh_Gram();
+    OLED_Refresh_Gram();//更新显示
 }
 
 

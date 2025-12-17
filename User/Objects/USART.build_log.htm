@@ -27,14 +27,29 @@ Project File Date:  12/12/2025
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'FreeRTOS'
-compiling led.c...
-..\BSP\led.c(251): warning:  #550-D: variable "g_breath_up"  was set but never used
-  static uint8_t  g_breath_up = 1;                            /**< 呼吸方向标志�?1上升�?0下降 */
-..\BSP\led.c: 1 warning, 0 errors
+compiling main.c...
+compiling test.c...
+test.c(145): warning:  #188-D: enumerated type mixed with another type
+                  current_interface = (current_interface + 1) % 2;
+test.c: 1 warning, 0 errors
+compiling pms5003st.c...
+compiling usart1.c...
+..\BSP\usart1.c(216): warning:  #167-D: argument of type "uint8_t *" is incompatible with parameter of type "const char *"
+                  OLED_ShowString(0, row * 16, display_data, 16);
+..\BSP\usart1.c(184): warning:  #550-D: variable "display_row"  was set but never used
+      uint8_t display_row = 0;
+..\BSP\usart1.c: 2 warnings, 0 errors
+compiling oled_menu.c...
+compiling oled.c...
+..\Driver\oled.c(165): warning:  #177-D: function "IIC_Ack"  was declared but never referenced
+  static void IIC_Ack(void)
+..\Driver\oled.c(182): warning:  #177-D: function "IIC_NAck"  was declared but never referenced
+  static void IIC_NAck(void)
+..\Driver\oled.c: 2 warnings, 0 errors
 linking...
-Program Size: Code=19312 RO-data=6416 RW-data=236 ZI-data=20188  
+Program Size: Code=20196 RO-data=6416 RW-data=248 ZI-data=20192  
 FromELF: creating hex file...
-".\Objects\USART.axf" - 0 Error(s), 1 Warning(s).
+".\Objects\USART.axf" - 0 Error(s), 5 Warning(s).
 
 <h2>Software Packages used:</h2>
 
