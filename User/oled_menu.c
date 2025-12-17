@@ -4,6 +4,12 @@
 #include "../BSP/pwm.h"
 #include "queue.h"
 #include <stdio.h>
+#include <string.h>
+#include "stm32f10x_gpio.h"
+#include "stm32f10x_rcc.h"
+#include "usart1.h"
+#include "usart2.h"
+#include "key.h"
 extern volatile uint32_t g_uptime_seconds;
 
 // 声明按键队列
@@ -53,6 +59,9 @@ static void pwm_menu_init(void) {
     OLED_ShowString(0, 16, "PA11:", 16);
     OLED_ShowString(0, 32, "PA6:", 16);
     OLED_ShowString(96, 16, ">", 16); // 显示当前选中通道
+    // 关闭灯光
+    Led_Off();
+    Led_Mode_Off();
     // 开启两个PWM通道
     pwm_set_duty(1, pwm_get_duty(1));
     pwm_set_duty(2, pwm_get_duty(2));
@@ -86,6 +95,10 @@ static void adc_menu_init(void) {
     OLED_ShowString(0, 0, "ADC Menu", 16);
     OLED_ShowString(0, 16, "PA0:", 16);
     OLED_ShowString(0, 32, "PA1:", 16);
+    
+    // 关闭灯光
+    Led_Off();
+    Led_Mode_Off();
     
     // 打开ADC电源
     adc_power_on();
@@ -122,18 +135,48 @@ static void adc_menu_exit(void) {
 
 // ---------------------------- GPIO输入界面 ----------------------------
 static void gpio_input_menu_init(void) {
+    GPIO_InitTypeDef GPIO_InitStructure;
+    
+    // 使能GPIOB时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    
+    // 配置PB2-PB7为浮空输入
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    
     OLED_Clear();
     OLED_ShowString(0, 0, "GPIO Input", 16);
-    OLED_ShowString(0, 16, "Keys:", 16);
+    OLED_ShowString(0, 16, "PB2:", 16);
+    OLED_ShowString(0, 32, "PB3:", 16);
+    OLED_ShowString(0, 48, "PB4:", 16);
+    OLED_ShowString(64, 16, "PB5:", 16);
+    OLED_ShowString(64, 32, "PB6:", 16);
+    OLED_ShowString(64, 48, "PB7:", 16);
+    
+    // 关闭灯光
+    Led_Off();
+    Led_Mode_Off();
 }
 
 static void gpio_input_menu_loop(void) {
-    // 显示当前按键状态
-    KEY_ID key = key_scan();
-    if (key != KEY_NONE) {
-        OLED_ShowString(48, 16, "    ", 16); // 清除旧值
-        OLED_ShowNum(48, 16, key, 1, 16);
-    }
+    uint8_t pb2_state, pb3_state, pb4_state, pb5_state, pb6_state, pb7_state;
+    
+    // 读取GPIO状态
+    pb2_state = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_2);
+    pb3_state = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_3);
+    pb4_state = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4);
+    pb5_state = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5);
+    pb6_state = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_6);
+    pb7_state = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_7);
+    
+    // 显示GPIO状态为1/0
+    OLED_ShowString(32, 16, pb2_state ? "1" : "0", 16);
+    OLED_ShowString(32, 32, pb3_state ? "1" : "0", 16);
+    OLED_ShowString(32, 48, pb4_state ? "1" : "0", 16);
+    OLED_ShowString(96, 16, pb5_state ? "1" : "0", 16);
+    OLED_ShowString(96, 32, pb6_state ? "1" : "0", 16);
+    OLED_ShowString(96, 48, pb7_state ? "1" : "0", 16);
 }
 
 static void gpio_input_menu_exit(void) {
@@ -141,42 +184,156 @@ static void gpio_input_menu_exit(void) {
 }
 
 // ---------------------------- GPIO输出界面 ----------------------------
-static uint8_t gpio_output_state = 0;
+static uint8_t gpio_output_selected = 0;  // 当前选中的GPIO引脚
+static uint8_t gpio_output_states[5] = {0};  // PA5,PB12,PC13,PA12,PA15的状态
 
 static void gpio_output_menu_init(void) {
+    GPIO_InitTypeDef GPIO_InitStructure;
+    
+    // 使能GPIO时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC, ENABLE);
+    
+    // 配置PA5, PA12, PA15为推挽输出
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_12;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+    // 配置PB12为推挽输出
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    
+    // 配置PC13为推挽输出
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+    
+    // 配置PA15为推挽输出（需要特殊处理，因为PA15默认是JTAG引脚）
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+    // 初始化所有GPIO为低电平
+    GPIO_ResetBits(GPIOA, GPIO_Pin_5 | GPIO_Pin_12 | GPIO_Pin_15);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_12);
+    GPIO_ResetBits(GPIOC, GPIO_Pin_13);
+    
     OLED_Clear();
     OLED_ShowString(0, 0, "GPIO Output", 16);
-    OLED_ShowString(0, 16, "LED:", 16);
-    gpio_output_state = 0;
-    // 直接控制LED关闭，不重新初始化GPIO
-    GPIO_ResetBits(GPIOB, GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
+    OLED_ShowString(0, 16, "PA5:", 16);
+    OLED_ShowString(0, 32, "PB12:", 16);
+    OLED_ShowString(0, 48, "PC13:", 16);
+    OLED_ShowString(64, 16, "PA12:", 16);
+    OLED_ShowString(64, 32, "PA15:", 16);
+    
+    // 显示选中状态 - 在选中的数据后面添加O
+    OLED_ShowString(56, 16, "O", 16);  // 默认选中PA5
+    
+    // 关闭灯光
+    Led_Off();
+    Led_Mode_Off();
 }
 
 static void gpio_output_menu_loop(void) {
-    OLED_ShowString(48, 16, gpio_output_state ? "ON " : "OFF", 16);
+    // 显示所有GPIO状态
+    OLED_ShowString(48, 16, gpio_output_states[0] ? "1" : "0", 16);
+    OLED_ShowString(48, 32, gpio_output_states[1] ? "1" : "0", 16);
+    OLED_ShowString(48, 48, gpio_output_states[2] ? "1" : "0", 16);
+    OLED_ShowString(112, 16, gpio_output_states[3] ? "1" : "0", 16);
+    OLED_ShowString(112, 32, gpio_output_states[4] ? "1" : "0", 16);
+    
+    // 重新绘制选中标记
+    OLED_ShowString(56, 16, " ", 16);
+    OLED_ShowString(56, 32, " ", 16);
+    OLED_ShowString(56, 48, " ", 16);
+    OLED_ShowString(120, 16, " ", 16);
+    OLED_ShowString(120, 32, " ", 16);
+    
+    switch(gpio_output_selected) {
+        case 0: OLED_ShowString(56, 16, "O", 16); break;  // PA5
+        case 1: OLED_ShowString(56, 32, "O", 16); break;  // PB12
+        case 2: OLED_ShowString(56, 48, "O", 16); break;  // PC13
+        case 3: OLED_ShowString(120, 16, "O", 16); break; // PA12
+        case 4: OLED_ShowString(120, 32, "O", 16); break; // PA15
+    }
 }
 
 static void gpio_output_menu_exit(void) {
-    // 直接控制LED关闭，不重新初始化GPIO
-    GPIO_ResetBits(GPIOB, GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
+    // 关闭所有GPIO输出
+    GPIO_ResetBits(GPIOA, GPIO_Pin_5 | GPIO_Pin_12 | GPIO_Pin_15);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_12);
+    GPIO_ResetBits(GPIOC, GPIO_Pin_13);
 }
 
 // ---------------------------- 串口接收界面 ----------------------------
+static uint8_t *uart1_buffer = NULL;
+static uint32_t uart1_len = 0;
+static uint8_t *uart2_buffer = NULL;
+static uint32_t uart2_len = 0;
+static uint8_t uart_display_line = 0;
+
 static void uart_receive_menu_init(void) {
     OLED_Clear();
     OLED_ShowString(0, 0, "UART Receive", 16);
-    OLED_ShowString(0, 16, "Data:", 16);
-    // 这里可以初始化串口接收缓冲区
+    OLED_ShowString(0, 16, "U1:", 16);
+    OLED_ShowString(0, 32, "U2:", 16);
+    OLED_ShowString(0, 48, "", 16);
+    
+    // 初始化缓冲区
+    if (uart1_buffer) {
+        vPortFree(uart1_buffer);
+        uart1_buffer = NULL;
+    }
+    if (uart2_buffer) {
+        vPortFree(uart2_buffer);
+        uart2_buffer = NULL;
+    }
+    uart1_len = 0;
+    uart2_len = 0;
+    uart_display_line = 0;
+    
+    // 关闭灯光
+    Led_Off();
+    Led_Mode_Off();
 }
 
 static void uart_receive_menu_loop(void) {
-    // 这里可以显示串口接收的数据
-    // 示例：显示"Wait"表示等待数据
-    OLED_ShowString(48, 16, "Wait", 16);
+    // 检查串口1数据
+    if (0 == USART1_Read(&uart1_buffer, &uart1_len, 10)) {
+        // 显示串口1数据（最多显示10个字符）
+        uint8_t display_str[11] = {0};
+        uint32_t display_len = uart1_len > 10 ? 10 : uart1_len;
+        memcpy(display_str, uart1_buffer, display_len);
+        OLED_ShowString(16, 16, (char *)display_str, 16);
+        vPortFree(uart1_buffer);
+        uart1_buffer = NULL;
+        uart1_len = 0;
+    }
+    
+    // 检查串口2数据
+    if (0 == USART2_GetData(&uart2_buffer, &uart2_len, 10)) {
+        // 显示串口2数据（最多显示10个字符）
+        uint8_t display_str[11] = {0};
+        uint32_t display_len = uart2_len > 10 ? 10 : uart2_len;
+        memcpy(display_str, uart2_buffer, display_len);
+        OLED_ShowString(16, 32, (char *)display_str, 16);
+        vPortFree(uart2_buffer);
+        uart2_buffer = NULL;
+        uart2_len = 0;
+    }
+    
+    // 按键处理已经移到menu_handle_key函数中统一管理
+    // 这里只负责更新显示数据
 }
 
 static void uart_receive_menu_exit(void) {
-    // 串口接收界面退出不需要特殊处理
+    // 释放缓冲区
+    if (uart1_buffer) {
+        vPortFree(uart1_buffer);
+        uart1_buffer = NULL;
+    }
+    if (uart2_buffer) {
+        vPortFree(uart2_buffer);
+        uart2_buffer = NULL;
+    }
 }
 
 // ---------------------------- 自由调试界面 ----------------------------
@@ -184,6 +341,9 @@ static void free_debug_menu_init(void) {
     OLED_Clear();
     OLED_ShowString(0, 0, "Free Debug", 16);
     OLED_ShowString(0, 16, "Mode:", 16);
+    // 关闭灯光
+    Led_Off();
+    Led_Mode_Off();
     // 自由调试模式下保持PWM开启
     //pwm_set_duty(pwm_get_duty();
 }
@@ -362,12 +522,40 @@ void menu_handle_key(KEY_ID key) {
                     menu_switch(MENU_UART_RECEIVE); // GPIO输出菜单 -> 串口接收菜单
                     break;
                 case KEY_K2:
-                    Led1_On();
-                    gpio_output_state = 1;
+                    // 切换选中的GPIO状态
+                    gpio_output_states[gpio_output_selected] = !gpio_output_states[gpio_output_selected];
+                    
+                    // 更新实际GPIO输出
+                    switch(gpio_output_selected) {
+                        case 0:  // PA5
+                            if(gpio_output_states[0]) GPIO_SetBits(GPIOA, GPIO_Pin_5);
+                            else GPIO_ResetBits(GPIOA, GPIO_Pin_5);
+                            break;
+                        case 1:  // PB12
+                            if(gpio_output_states[1]) GPIO_SetBits(GPIOB, GPIO_Pin_12);
+                            else GPIO_ResetBits(GPIOB, GPIO_Pin_12);
+                            break;
+                        case 2:  // PC13
+                            if(gpio_output_states[2]) GPIO_SetBits(GPIOC, GPIO_Pin_13);
+                            else GPIO_ResetBits(GPIOC, GPIO_Pin_13);
+                            break;
+                        case 3:  // PA12
+                            if(gpio_output_states[3]) GPIO_SetBits(GPIOA, GPIO_Pin_12);
+                            else GPIO_ResetBits(GPIOA, GPIO_Pin_12);
+                            break;
+                        case 4:  // PA15
+                            if(gpio_output_states[4]) GPIO_SetBits(GPIOA, GPIO_Pin_15);
+                            else GPIO_ResetBits(GPIOA, GPIO_Pin_15);
+                            break;
+                    }
                     break;
                 case KEY_K3:
-                    Led_Off();
-                    gpio_output_state = 0;
+                    // 向下切换引脚
+                    gpio_output_selected = (gpio_output_selected + 1) % 5;
+                    break;
+                case KEY_K4:
+                    // 向上切换引脚
+                    gpio_output_selected = (gpio_output_selected + 4) % 5;
                     break;
                 default:
                     break;
@@ -376,8 +564,26 @@ void menu_handle_key(KEY_ID key) {
             
         case MENU_UART_RECEIVE:
             // 串口接收界面按键处理
-            if (key == KEY_K1) {
-                menu_switch(MENU_FREE_DEBUG); // 串口接收菜单 -> 自由调试菜单
+            switch (key) {
+                case KEY_K1:
+                    menu_switch(MENU_FREE_DEBUG); // 串口接收菜单 -> 自由调试菜单
+                    break;
+                case KEY_K3:
+                    // 翻页处理
+                    uart_display_line = (uart_display_line + 1) % 2;
+                    OLED_Clear();
+                    OLED_ShowString(0, 0, "UART Receive", 16);
+                    
+                    if (uart_display_line == 0) {
+                        OLED_ShowString(0, 16, "U1:", 16);
+                        OLED_ShowString(0, 32, "U2:", 16);
+                    } else {
+                        OLED_ShowString(0, 16, "U1:", 16);
+                        OLED_ShowString(0, 32, "U2:", 16);
+                    }
+                    break;
+                default:
+                    break;
             }
             break;
             

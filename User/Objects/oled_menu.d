@@ -46,3 +46,6 @@
 .\objects\oled_menu.o: ../BSP/pwm.h
 .\objects\oled_menu.o: ..\FreeRTOS\include\queue.h
 .\objects\oled_menu.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\oled_menu.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\objects\oled_menu.o: ..\BSP\usart1.h
+.\objects\oled_menu.o: ..\BSP\usart2.h

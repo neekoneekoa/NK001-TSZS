@@ -40,12 +40,12 @@
 .\objects\main.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
 .\objects\main.o: ..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h
 .\objects\main.o: ..\STM32F10x_FWLib\inc\misc.h
+.\objects\main.o: ..\BSP\usart2.h
 .\objects\main.o: ..\BSP\led.h
 .\objects\main.o: ..\BSP\sysTick.h
 .\objects\main.o: ..\Driver\oled.h
 .\objects\main.o: test.h
 .\objects\main.o: ..\Driver\pms5003st.h
-.\objects\main.o: ..\BSP\usart2.h
 .\objects\main.o: ..\BSP\key.h
 .\objects\main.o: ..\BSP\buzzer.h
 .\objects\main.o: ../BSP/pwm.h

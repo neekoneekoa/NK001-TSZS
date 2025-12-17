@@ -140,7 +140,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name>d</Name>
+          <Name></Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -162,9 +162,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>39</LineNumber>
+          <LineNumber>265</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134230542</Address>
+          <Address>134231816</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -173,55 +173,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>D:\cunchu\椤圭洰\涓插彛璋冭瘯鍔╂墜\1-SW\NK001\NK001-TSZS\USER\oled_menu.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\USART\oled_menu.c\39</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>517</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134222650</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\cunchu\椤圭洰\涓插彛璋冭瘯鍔╂墜\1-SW\NK001\NK001-TSZS\BSP\led.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\\../BSP/led.c\517</Expression>
-        </Bp>
-        <Bp>
-          <Number>2</Number>
-          <Type>0</Type>
-          <LineNumber>557</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134230166</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\cunchu\椤圭洰\涓插彛璋冭瘯鍔╂墜\1-SW\NK001\NK001-TSZS\BSP\led.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\USART\../BSP/led.c\557</Expression>
-        </Bp>
-        <Bp>
-          <Number>3</Number>
-          <Type>0</Type>
-          <LineNumber>573</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134230142</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\cunchu\椤圭洰\涓插彛璋冭瘯鍔╂墜\1-SW\NK001\NK001-TSZS\BSP\led.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\USART\../BSP/led.c\573</Expression>
+          <Expression>\\USART\oled_menu.c\265</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>

@@ -1,6 +1,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "usart1.h"
+#include "usart2.h"
 #include "led.h"
 #include "sysTick.h"
 #include "oled.h"
@@ -201,8 +202,9 @@ int main(void)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); 
 	Clock_Init();				//使用内部晶振
 	SysTick_Init();
-    Usart1_Init(115200);                              		//初始化串口
-	printf("HELLO NEEKO\r\n");						//测试串口打印
+    Usart1_Init(115200);                              		//初始化串口1
+    Usart2_Init(115200);                              		//初始化串口2
+    printf("HELLO NEEKO\r\n");						//测试串口打印
     Led_Init();                                      //初始化LED        
     pwm_init();                                      //初始化PWM        
     xLedQueue = xQueueCreate(10, sizeof(LedCommand));
